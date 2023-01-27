@@ -32,9 +32,7 @@ int tictactoe(int socketClient) {
     initSDL();
     window = SDL_CreateWindow("MORPION",50,50,400,400,0);
     renderer = SDL_CreateRenderer(window,-1,0);
-//    createWindowAndRenderer("MORPION",400,400,window,renderer);
-    SDL_GetError();
-    changeColor(renderer,0,255,0);
+
 
     Button btn;
     btn.beginX = 50;
@@ -43,6 +41,7 @@ int tictactoe(int socketClient) {
     btn.endY = 150;
     btn.actionType = 6;
 
+    changeColor(renderer,0,255,0);
     createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
     updateRenderer(renderer);
 

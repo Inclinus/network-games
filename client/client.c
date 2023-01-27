@@ -15,6 +15,7 @@ int main() {
     // projetc.neo-serv.fr -> 92.222.131.57
 
     struct hostent *ipserveur;
+    //ipserveur = gethostbyname("localhost");
     ipserveur = gethostbyname("projetc.neo-serv.fr");
 
     if (ipserveur == NULL) {
