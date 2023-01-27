@@ -35,54 +35,7 @@ int turn(int ** board, int player, int px, int py)
     }
 }
 
-int winCondition(int ** board,int verifNumber){
-
-    for (int i = 0; i < 2; i++) {
-        if (board[i][0] == verifNumber && board[i][1] == verifNumber && board[i][2] == verifNumber) {
-            return 1;
-        }
-    }
-
-    for (int y = 0; y < 2; y++) {
-        if (board[0][y] == verifNumber && board[1][y] == verifNumber && board[2][y] == verifNumber) {
-            return 1;
-        }
-    }
-
-    if (board[0][0] == verifNumber && board[1][1] == verifNumber && board[2][2] == verifNumber) {
-        return 1;
-    }
-    if (board[0][2] == verifNumber && board[1][1] == verifNumber && board[2][0] == verifNumber) {
-        return 1;
-    }
-
-    return 0;
-}
-
-int main() {
-    int socketClient = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in addrServer;
-    // gethostbyname() -> permet d'utilise le DNS
-    addrServer.sin_addr.s_addr = inet_addr("127.0.0.1");
-    addrServer.sin_family = AF_INET;
-    addrServer.sin_port = htons(4444);
-
-    connect(socketClient, (const struct sockaddr *) &addrServer, sizeof(addrServer));
-    printf("CONNECTER !\n");
-
-    char data[8];
-    recv(socketClient, data, 8, 0);
-    printf("RECU : %s\n", data);
-    if (strcmp(data, "NICKNAME")) {
-        printf("Quel est votre pseudo : \n");
-        scanf("%s", data);
-        send(socketClient, data, sizeof(data), 0);
-    } else {
-        printf("ERREUR DE PROTOCOLE !\n");
-    }
-
-
-
+int tictactoe() {
 
     int ** board;
     int * row;
@@ -160,7 +113,6 @@ int main() {
 
     free(row);
     free(board);
-
 
     //printf("STRING RECU : %s\n", buffer);
     close(socketClient);

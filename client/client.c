@@ -45,8 +45,7 @@ int main() {
         printf("ERREUR DE PROTOCOLE !\n");
     }
 
-    int wait;
-    scanf("%d", &wait);
+    tictactoe();
 
     close(socketClient);
 

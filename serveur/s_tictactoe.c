@@ -63,44 +63,7 @@ int winCondition(int ** board,int verifNumber){
     return 0;
 }
 
-int main() {
-
-    int socketServer = socket(AF_INET, SOCK_STREAM, 0);
-    // GERER L'ERREUR SI SOCKET NE S'OUVRE PAS !
-    // MALLOC ?
-    struct sockaddr_in addrServer;
-    addrServer.sin_addr.s_addr = inet_addr("127.0.0.1");
-    addrServer.sin_family = AF_INET;
-    addrServer.sin_port = htons(4444);
-
-    if (bind(socketServer, (const struct sockaddr_in *)&addrServer, sizeof(addrServer)) < 0) {
-        printf("BIND SOCKET ERREUR !\n");
-    }
-    printf("BIND SOCKET OK !\n");
-
-    struct sockaddr_in addrClient;
-    socklen_t addrClient_lenght;
-
-    int nbJoueur = 0;
-    int maxJoueur = 2;
-    int *socketClient = (int*)malloc(maxJoueur*sizeof(int));
-
-    while (nbJoueur < maxJoueur){
-
-        listen(socketServer, maxJoueur - nbJoueur);
-        addrClient_lenght = sizeof(addrClient);
-        socketClient[nbJoueur] = accept(socketServer, (struct sockaddr *) &addrClient, &addrClient_lenght);
-
-        if (socketClient[nbJoueur] < 0) {
-            printf("ERREUR DE CONNEXION AVEC LE CLIENT !\n");
-        }
-        printf("CONNEXION ACCEPTER DU CLIENT NUMERO :  %d\n", nbJoueur);
-        send(socketClient[nbJoueur], "NICKNAME", 8, 0);
-        char data[25];
-        recvfrom(socketClient[nbJoueur], data, sizeof(data), 0, (struct sockaddr *) &addrClient, &addrClient_lenght);
-        printf("NICKNAME : %s\n", data);
-        nbJoueur++;
-    }
+int tictactoe() {
 
     printf("PARTIE COMMENCE !\n");
 
@@ -184,13 +147,6 @@ int main() {
     }
     free(row);
     free(board);
-
-
-    // Close Socket client
-    close(socketClient[0]);
-    close(socketClient[1]);
-    // Close Socket server
-    close(socketServer);
 
     return 0;
 }
