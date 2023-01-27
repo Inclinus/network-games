@@ -1,7 +1,6 @@
 // SDL Utils related to main window and renderer
 void initSDL();
 void quitSDL(SDL_Renderer * renderer, SDL_Window * window);
-void createWindowAndRenderer(const char *windowTitle, int width, int height, SDL_Window * window, SDL_Renderer * renderer);
 void updateRenderer(SDL_Renderer * renderer);
 
 // SDL Utils to draw

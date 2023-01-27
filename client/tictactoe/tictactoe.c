@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <SDL2/SDL_render.h>
+#include <SDL2/SDL.h>
 #include "../../sdl-utils/SDLUtils.h"
 
 
@@ -16,12 +17,66 @@ int turn(int ** board, int player, int px, int py);
 SDL_Renderer * renderer = NULL;
 SDL_Window * window = NULL;
 
+SDL_bool program_launch = SDL_TRUE;
+
+typedef struct{
+    int beginX;
+    int beginY;
+    int endX;
+    int endY;
+    int actionType;
+} Button ;
+
 int tictactoe(int socketClient) {
 
     initSDL();
-    createWindowAndRenderer("MORPION",400,400,window,renderer);
-    changeColor(renderer,0,0,0);
-    createFilledRectangle(50,50,200,100,renderer);
+    window = SDL_CreateWindow("MORPION",50,50,400,400,0);
+    renderer = SDL_CreateRenderer(window,-1,0);
+//    createWindowAndRenderer("MORPION",400,400,window,renderer);
+    SDL_GetError();
+    changeColor(renderer,0,255,0);
+
+    Button btn;
+    btn.beginX = 50;
+    btn.beginY = 50;
+    btn.endX = 250;
+    btn.endY = 150;
+    btn.actionType = 6;
+
+    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+    updateRenderer(renderer);
+
+    while(program_launch){
+        SDL_Event event;
+
+
+        int swap = 0;
+
+        while(SDL_PollEvent(&event)){
+            switch(event.type){
+                case SDL_QUIT:
+                    program_launch = SDL_FALSE;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    printf("SDL BUTTON DOWN");
+                    if(event.button.button==SDL_BUTTON_LEFT){
+                        if(swap%2==0) {
+                            changeColor(renderer,255,0,0);
+                        }
+                        else {
+                            changeColor(renderer,0,0,255);
+                        }
+
+                        swap++;
+                        createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+                        updateRenderer(renderer);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
     char data[8];
     int ** board;
@@ -46,17 +101,12 @@ int tictactoe(int socketClient) {
     }
     int player=1;
     int flag=0;
-    int JENECOMPRENDPAS = 0;
 
     while (flag==0) {
         if (recv(socketClient, data, 8, 0) <= 0){
             printf("Deconnecter du serveur ! \n");
             break;
         }
-        //if (JENECOMPRENDPAS == 0) {
-        //    data[strlen(data)-1] = '\0';
-        //    JENECOMPRENDPAS++;
-        //}
         printf("RECU : %s\n", data);
         player+=1;
         printboard(board);

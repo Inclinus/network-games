@@ -17,14 +17,6 @@ void createFilledRectangle(int x, int y, int w, int h, SDL_Renderer * renderer){
     }
 }
 
-void createWindowAndRenderer(const char *windowTitle, int width, int height, SDL_Window * window, SDL_Renderer * renderer){
-    // Window + renderer
-    if(SDL_CreateWindowAndRenderer(width,height,0,&window,&renderer) != 0){
-        SDL_ExitWithError("Unable to create window and renderer");
-    }
-    SDL_SetWindowTitle(window,windowTitle);
-}
-
 void closeWindowAndRendererAndThrowError(SDL_Renderer * renderer, SDL_Window * window, const char *message){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
