@@ -6,36 +6,23 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
+#include <SDL2/SDL_render.h>
+#include "../../sdl-utils/SDLUtils.h"
 
-void printboard(int ** board)
-{
-    for (int i = 2; i >=0; --i)
-    {
-        for (int y = 0; y < 3; ++y)
-        {
-            printf("| %d ",board[i][y]);
-        }
-        printf("| \n");
-    }
-}
 
-int turn(int ** board, int player, int px, int py)
-{
-    if(player%2==0 && board[px][py]!=1 && board[px][py]!=2){
-        board[px][py]=1;
-        return 1;
-    }
-    else if(player%2==1 && board[px][py]!=1 && board[px][py]!=2){
-        board[px][py]=2;
-        return 1;
-    }else{
-        printf("Coup Impossible ! \n");
-        printboard(board);
-        return 0;
-    }
-}
+void printboard(int ** board);
+int turn(int ** board, int player, int px, int py);
+
+SDL_Renderer * renderer = NULL;
+SDL_Window * window = NULL;
 
 int tictactoe(int socketClient) {
+
+    initSDL();
+    createWindowAndRenderer("MORPION",400,400,window,renderer);
+    changeColor(renderer,0,0,0);
+    createFilledRectangle(50,50,200,100,renderer);
+
     char data[8];
     int ** board;
     int * row;
@@ -118,4 +105,32 @@ int tictactoe(int socketClient) {
     close(socketClient);
 
     return 0;
+}
+
+void printboard(int ** board)
+{
+    for (int i = 2; i >=0; --i)
+    {
+        for (int y = 0; y < 3; ++y)
+        {
+            printf("| %d ",board[i][y]);
+        }
+        printf("| \n");
+    }
+}
+
+int turn(int ** board, int player, int px, int py)
+{
+    if(player%2==0 && board[px][py]!=1 && board[px][py]!=2){
+        board[px][py]=1;
+        return 1;
+    }
+    else if(player%2==1 && board[px][py]!=1 && board[px][py]!=2){
+        board[px][py]=2;
+        return 1;
+    }else{
+        printf("Coup Impossible ! \n");
+        printboard(board);
+        return 0;
+    }
 }

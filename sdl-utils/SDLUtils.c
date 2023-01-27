@@ -1,9 +1,12 @@
-void changeColor(int red, int green, int blue){
+#include <SDL2/SDL.h>
+#include "SDLUtils.h"
+
+void changeColor(SDL_Renderer * renderer,int red, int green, int blue){
     if(SDL_SetRenderDrawColor(renderer,red,green,blue,SDL_ALPHA_OPAQUE) != 0)
         SDL_ExitWithError("Unable to change renderer color");
 }
 
-void createFilledRectangle(int x, int y, int w, int h){
+void createFilledRectangle(int x, int y, int w, int h, SDL_Renderer * renderer){
     SDL_Rect rectangle;
     rectangle.x = x;
     rectangle.y = y;
@@ -14,25 +17,25 @@ void createFilledRectangle(int x, int y, int w, int h){
     }
 }
 
-void createWindowAndRenderer(const char *windowTitle){
+void createWindowAndRenderer(const char *windowTitle, int width, int height, SDL_Window * window, SDL_Renderer * renderer){
     // Window + renderer
-    if(SDL_CreateWindowAndRenderer(WINDOW_WIDTH,WINDOW_HEIGHT,0,&window,&renderer) != 0){
+    if(SDL_CreateWindowAndRenderer(width,height,0,&window,&renderer) != 0){
         SDL_ExitWithError("Unable to create window and renderer");
     }
     SDL_SetWindowTitle(window,windowTitle);
 }
 
-void closeWindowAndRendererAndThrowError(const char *message){
+void closeWindowAndRendererAndThrowError(SDL_Renderer * renderer, SDL_Window * window, const char *message){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_ExitWithError(message);
 }
 
-void updateRenderer(){
+void updateRenderer(SDL_Renderer * renderer){
     SDL_RenderPresent(renderer);
 }
 
-void quitSDL(SDL_Renderer renderer, SDL_Wind){
+void quitSDL(SDL_Renderer * renderer, SDL_Window * window){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

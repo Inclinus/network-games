@@ -1,17 +1,13 @@
-//
-// Created by noam on 25/01/23.
-//
-
 // SDL Utils related to main window and renderer
 void initSDL();
-void quitSDL();
-void createWindowAndRenderer();
-void updateRenderer();
+void quitSDL(SDL_Renderer * renderer, SDL_Window * window);
+void createWindowAndRenderer(const char *windowTitle, int width, int height, SDL_Window * window, SDL_Renderer * renderer);
+void updateRenderer(SDL_Renderer * renderer);
 
 // SDL Utils to draw
-void createFilledRectangle(int x, int y, int w, int h);
-void changeColor(int red, int green, int blue);
+void createFilledRectangle(int x, int y, int w, int h, SDL_Renderer * renderer);
+void changeColor(SDL_Renderer * renderer,int red, int green, int blue);
 
 // SDL Error utils
 void SDL_ExitWithError(const char *message);
-void closeWindowAndRendererAndThrowError(const char *message);
+void closeWindowAndRendererAndThrowError(SDL_Renderer * renderer, SDL_Window * window, const char *message);
