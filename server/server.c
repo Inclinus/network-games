@@ -46,7 +46,7 @@ int main() {
     addrServer.sin_family = AF_INET;
     addrServer.sin_port = htons(4444);
 
-    if (bind(socketServer, (const struct sockaddr_in *)&addrServer, sizeof(addrServer)) < 0) {
+    if (bind(socketServer, (struct sockaddr *)&addrServer, sizeof(addrServer)) < 0) {
         printf("BIND SOCKET ERREUR !\n");
         return 1;
     }
