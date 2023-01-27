@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <SDL2/SDL.h>
+#include "../sdl-utils/SDLUtils.h"
 
 void checkFull(char **game, int *win);
 void checkLine(char **game, char color, int line, int *win);
