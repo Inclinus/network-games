@@ -36,7 +36,7 @@ int turn(int ** board, int player, int px, int py)
 }
 
 int tictactoe(int socketClient) {
-    char data[8] = "";
+    char data[8];
     int ** board;
     int * row;
     board=malloc(sizeof(int*)*3);
@@ -66,10 +66,10 @@ int tictactoe(int socketClient) {
             printf("Deconnecter du serveur ! \n");
             break;
         }
-        if (JENECOMPRENDPAS == 0) {
-            data[strlen(data)-1] = '\0';
-            JENECOMPRENDPAS++;
-        }
+        //if (JENECOMPRENDPAS == 0) {
+        //    data[strlen(data)-1] = '\0';
+        //    JENECOMPRENDPAS++;
+        //}
         printf("RECU : %s\n", data);
         player+=1;
         printboard(board);
