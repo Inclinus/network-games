@@ -1,7 +1,86 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void checkFull(char **game, int *win);
+void checkLine(char **game, char color, int line, int *win);
+void checkColumn(char **game, char color, int column, int *win);
+void checkDiagonals(char **game, char color, int line, int column, int *win);
+void checkWin(char **game, char color, int column, int line, int *win);
+void displayGame(char **game);
+int putOnColumn(char **game, int line, char color, int *win);
+void initializeGame(char **game);
+
 int SIZE = 7;
+
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+
+int WINDOW_WIDTH = 0;
+int WINDOW_HEIGHT = 0;
+
+char red = 'R';
+char blue = 'B';
+
+// SDL Bool to do the game loop
+SDL_bool program_launched;
+
+int main() {
+
+
+    char **game = malloc(sizeof(char *) * SIZE);
+
+    initializeGame(game);
+    printf("Voici le plateau de départ :\n");
+    displayGame(game);
+
+    // win values :
+    // 100 = null : board is full
+    // 10 = RED won
+    // 20 = BLUE won
+    int win = 0;
+    int turn = 0;
+    while (!win) {
+        int columnChosen = 0;
+        int noError = 0;
+        if (turn % 2 == 0) {
+            while (columnChosen < 1 || columnChosen > 7) {
+                printf("[CONNECT 4] BLUE turn\n");
+                printf("[CONNECT 4] Chose a column by her number :\n");
+                scanf("%d", &columnChosen);
+                noError = putOnColumn(game, columnChosen, blue, &win);
+                if (!noError) {
+                    displayGame(game);
+                    printf("[CONNECT 4] Your choice is out of the game.\n");
+                    columnChosen = 0;
+                }
+            }
+        } else {
+            while (columnChosen < 1 || columnChosen > 7) {
+                printf("[CONNECT 4] RED turn\n");
+                printf("[CONNECT 4] Chose a column by her number :\n");
+                scanf("%d", &columnChosen);
+                noError = putOnColumn(game, columnChosen, red, &win);
+                if (!noError) {
+                    displayGame(game);
+                    printf("[CONNECT 4] Your choice is out of the game.\n");
+                    columnChosen = 0;
+                }
+            }
+        }
+        turn++;
+    }
+
+    if (win == 100) {
+        printf("[CONNECT 4] Nobody has won ! You filled the board without making any lines of 4 of your tokens.\n[CONNECT 4] See you soon !");
+    } else if (win == 10) {
+        printf("[CONNECT 4] RED has won !\n[CONNECT 4] See you soon !");
+    } else if (win == 20) {
+        printf("[CONNECT 4] BLUE has won !\n[CONNECT 4] See you soon !");
+    }
+
+    return 0;
+}
+
 
 void checkFull(char **game, int *win) {
     int full = 1;
@@ -139,62 +218,4 @@ void initializeGame(char **game) {
             game[i][j] = '+';
         }
     }
-}
-
-int main() {
-    char red = 'R';
-    char blue = 'B';
-
-    char **game = malloc(sizeof(char *) * SIZE);
-
-    initializeGame(game);
-    printf("Voici le plateau de départ :\n");
-    displayGame(game);
-
-    // win values :
-    // 100 = null : board is full
-    // 10 = RED won
-    // 20 = BLUE won
-    int win = 0;
-    int turn = 0;
-    while (!win) {
-        int columnChosen = 0;
-        int noError = 0;
-        if (turn % 2 == 0) {
-            while (columnChosen < 1 || columnChosen > 7) {
-                printf("[CONNECT 4] BLUE turn\n");
-                printf("[CONNECT 4] Chose a column by her number :\n");
-                scanf("%d", &columnChosen);
-                noError = putOnColumn(game, columnChosen, blue, &win);
-                if (!noError) {
-                    displayGame(game);
-                    printf("[CONNECT 4] Your choice is out of the game.\n");
-                    columnChosen = 0;
-                }
-            }
-        } else {
-            while (columnChosen < 1 || columnChosen > 7) {
-                printf("[CONNECT 4] RED turn\n");
-                printf("[CONNECT 4] Chose a column by her number :\n");
-                scanf("%d", &columnChosen);
-                noError = putOnColumn(game, columnChosen, red, &win);
-                if (!noError) {
-                    displayGame(game);
-                    printf("[CONNECT 4] Your choice is out of the game.\n");
-                    columnChosen = 0;
-                }
-            }
-        }
-        turn++;
-    }
-
-    if (win == 100) {
-        printf("[CONNECT 4] Nobody has won ! You filled the board without making any lines of 4 of your tokens.\n[CONNECT 4] See you soon !");
-    } else if (win == 10) {
-        printf("[CONNECT 4] RED has won !\n[CONNECT 4] See you soon !");
-    } else if (win == 20) {
-        printf("[CONNECT 4] BLUE has won !\n[CONNECT 4] See you soon !");
-    }
-
-    return 0;
 }
