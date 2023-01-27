@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <netdb.h>
+#include "tictactoe/tictactoe.h"
 
 int main() {
     int socketClient = socket(AF_INET, SOCK_STREAM, 0);
@@ -45,7 +46,7 @@ int main() {
         printf("ERREUR DE PROTOCOLE !\n");
     }
 
-    tictactoe();
+    tictactoe(socketClient);
 
     close(socketClient);
 

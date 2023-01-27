@@ -35,8 +35,8 @@ int turn(int ** board, int player, int px, int py)
     }
 }
 
-int tictactoe() {
-
+int tictactoe(int socketClient) {
+    char data[8] = "";
     int ** board;
     int * row;
     board=malloc(sizeof(int*)*3);

@@ -63,7 +63,7 @@ int winCondition(int ** board,int verifNumber){
     return 0;
 }
 
-int tictactoe() {
+int tictactoe(int socketPlayer1, int socketPlayer2) {
 
     printf("PARTIE COMMENCE !\n");
 
@@ -98,49 +98,49 @@ int tictactoe() {
 
         if (player%2==0){
             printf("C'est au tour du joueur 1 !\n");
-            send(socketClient[0], "YOURTURN", 8, 0);
-            send(socketClient[1], "WAITTURN", 8, 0);
+            send(socketPlayer1, "YOURTURN", 8, 0);
+            send(socketPlayer2, "WAITTURN", 8, 0);
             int px;
             int py;
-            recv(socketClient[0], &px, sizeof(px), 0);
-            recv(socketClient[0], &py, sizeof(py), 0);
+            recv(socketPlayer1, &px, sizeof(px), 0);
+            recv(socketPlayer1, &py, sizeof(py), 0);
             if(turn(board,player,px,py)){
                 printf("Coup POSSIBLE SEND TO CLIENT ! \n");
-                send(socketClient[0], "YES", 3, 0);
-                send(socketClient[1], &px, sizeof(px), 0);
-                send(socketClient[1], &py, sizeof(py), 0);
+                send(socketPlayer1, "YES", 3, 0);
+                send(socketPlayer2, &px, sizeof(px), 0);
+                send(socketPlayer2, &py, sizeof(py), 0);
             } else {
                 printf("Coup IMPOSSIBLE SEND TO CLIENT ! \n");
-                send(socketClient[0], "NOK", 3, 0);
+                send(socketPlayer1, "NOK", 3, 0);
             }
         } else if (player%2==1){
             printf("C'est au tour du joueur 2 !\n");
-            send(socketClient[0], "WAITTURN", 8, 0);
-            send(socketClient[1], "YOURTURN", 8, 0);
+            send(socketPlayer1, "WAITTURN", 8, 0);
+            send(socketPlayer2, "YOURTURN", 8, 0);
             int px;
             int py;
-            recv(socketClient[1], &px, sizeof(px), 0);
-            recv(socketClient[1], &py, sizeof(py), 0);
+            recv(socketPlayer2, &px, sizeof(px), 0);
+            recv(socketPlayer2, &py, sizeof(py), 0);
             if(turn(board,player,px,py)){
                 printf("Coup POSSIBLE SEND TO CLIENT ! \n");
-                send(socketClient[1], "YES", 3, 0);
-                send(socketClient[0], &px, sizeof(px), 0);
-                send(socketClient[0], &py, sizeof(py), 0);
+                send(socketPlayer2, "YES", 3, 0);
+                send(socketPlayer1, &px, sizeof(px), 0);
+                send(socketPlayer1, &py, sizeof(py), 0);
             } else {
                 printf("Coup IMPOSSIBLE SEND TO CLIENT ! \n");
-                send(socketClient[1], "NOK", 3, 0);
+                send(socketPlayer2, "NOK", 3, 0);
             }
         }
 
         if (winCondition(board,1)){
             printf("Le joueur 1 a gagné !\n");
-            send(socketClient[0], "YOUWIN!!", 8, 0);
-            send(socketClient[1], "YOULOSE!", 8, 0);
+            send(socketPlayer1, "YOUWIN!!", 8, 0);
+            send(socketPlayer2, "YOULOSE!", 8, 0);
             flag=1;
         }else if (winCondition(board,2)){
             printf("Le joueur 2 a gagné !\n");
-            send(socketClient[0], "YOULOSE!", 8, 0);
-            send(socketClient[1], "YOUWIN!!", 8, 0);
+            send(socketPlayer1, "YOULOSE!", 8, 0);
+            send(socketPlayer2, "YOUWIN!!", 8, 0);
             flag=1;
         }
 

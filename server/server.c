@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include "tictactoe/tictactoe.h"
 
 typedef struct GameArgs {
     int socketPlayer1;
@@ -31,6 +32,8 @@ void * startGame(void *args){
 
     printf("NICKNAME 1 : %s\n", data);
     printf("NICKNAME 2 : %s\n", data2);
+
+    tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
 
     return 0;
 }
