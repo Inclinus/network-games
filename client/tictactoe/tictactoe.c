@@ -45,37 +45,6 @@ int tictactoe(int socketClient) {
     createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
     updateRenderer(renderer);
 
-    while(program_launch){
-        SDL_Event event;
-
-
-        int swap = 0;
-
-        while(SDL_PollEvent(&event)){
-            switch(event.type){
-                case SDL_QUIT:
-                    program_launch = SDL_FALSE;
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    printf("SDL BUTTON DOWN");
-                    if(event.button.button==SDL_BUTTON_LEFT){
-                        if(swap%2==0) {
-                            changeColor(renderer,255,0,0);
-                        }
-                        else {
-                            changeColor(renderer,0,0,255);
-                        }
-
-                        swap++;
-                        createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
-                        updateRenderer(renderer);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
 
     char data[8];
     int ** board;
@@ -103,7 +72,7 @@ int tictactoe(int socketClient) {
 
     while (flag==0) {
         if (recv(socketClient, data, 8, 0) <= 0){
-            printf("Deconnecter du serveur ! \n");
+            printf("Deconnecté du serveur ! \n");
             break;
         }
         printf("RECU : %s\n", data);
@@ -146,6 +115,40 @@ int tictactoe(int socketClient) {
             flag=1;
         }
     }
+
+
+    int swap = 0;
+    while(program_launch){
+        SDL_Event event;
+
+
+
+
+        while(SDL_PollEvent(&event)){
+            switch(event.type){
+                case SDL_QUIT:
+                    SDL_Log("SDL QUIT");
+                    program_launch = SDL_FALSE;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    SDL_Log("SDL button down %d",swap);
+                    if(swap%2==0) {
+                        changeColor(renderer,255,0,0);
+                    }
+                    else {
+                        changeColor(renderer,0,0,255);
+                    }
+                    swap++;
+                    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+                    updateRenderer(renderer);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    quitSDL(renderer,window);
+
 
     free(row);
     free(board);
