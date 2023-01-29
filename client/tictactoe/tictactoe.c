@@ -67,7 +67,7 @@ int tictactoe(int socketClient) {
     int swap = 0;
     while(program_launch){
         SDL_Event event;
-
+        SDL_Log("BOUCLE DE JEU");
         if (recv(socketClient, data, 8, 0) <= 0){
             SDL_Log("Deconnecté du serveur ! \n");
             break;
@@ -78,8 +78,9 @@ int tictactoe(int socketClient) {
         if (strcmp("YOURTURN", data) == 0) {
             int px;
             int py;
-            SDL_Log("C'est a vous de jouer ! \n");
+            SDL_Log("C'est a vous de jouer !");
             createTextZone(renderer,"C'est à vous de jouer !",0,20,150,40);
+            updateRenderer(renderer);
             scanf("%d", &px);
             send(socketClient, &px, sizeof(px), 0);
             scanf("%d", &py);
