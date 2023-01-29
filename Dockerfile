@@ -9,6 +9,6 @@ RUN apt-get install -y \
     gcc \
     libsdl2-dev \
     libsdl2-image-dev \
+    libsdl2-ttf-dev \
     mingw-w64 \
-    cmake
-RUN ./a.out
+    cmake \

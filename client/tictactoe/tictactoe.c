@@ -30,7 +30,7 @@ typedef struct{
 int tictactoe(int socketClient) {
 
     initSDL();
-    window = SDL_CreateWindow("MORPION",50,50,400,400,0);
+    window = SDL_CreateWindow("MORPION",50,50,600,800,0);
     renderer = SDL_CreateRenderer(window,-1,0);
 
 
@@ -41,12 +41,6 @@ int tictactoe(int socketClient) {
     btn.endY = 150;
     btn.actionType = 6;
 
-    changeColor(renderer,0,255,0);
-    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
-    updateRenderer(renderer);
-
-
-    char data[8];
     int ** board;
     int * row;
     board=malloc(sizeof(int*)*3);
@@ -63,44 +57,48 @@ int tictactoe(int socketClient) {
         {
 
             board[i][y]=0;
-            printf("| %d ",board[i][y]);
+            SDL_Log("| %d ",board[i][y]);
         }
-        printf("| \n");
+        SDL_Log("| \n");
     }
     int player=1;
-    int flag=0;
 
-    while (flag==0) {
+    char data[8];
+    int swap = 0;
+    while(program_launch){
+        SDL_Event event;
+
         if (recv(socketClient, data, 8, 0) <= 0){
-            printf("Deconnecté du serveur ! \n");
+            SDL_Log("Deconnecté du serveur ! \n");
             break;
         }
-        printf("RECU : %s\n", data);
+        SDL_Log("RECU : %s\n", data);
         player+=1;
         printboard(board);
         if (strcmp("YOURTURN", data) == 0) {
             int px;
             int py;
-            printf("C'est a vous de jouer ! \n");
+            SDL_Log("C'est a vous de jouer ! \n");
+            createTextZone(renderer,"C'est à vous de jouer !",0,20,150,40);
             scanf("%d", &px);
             send(socketClient, &px, sizeof(px), 0);
             scanf("%d", &py);
             send(socketClient, &py, sizeof(py), 0);
             char data2[3];
             if (recv(socketClient, data2, 3, 0) <= 0){
-                printf("Deconnecter du serveur ! \n");
+                SDL_Log("Deconnecté du serveur ! \n");
                 break;
             }
-            printf("RECU2 : %s\n", data2);
+            SDL_Log("RECU2 : %s\n", data2);
             if(strstr(data2, "NOK")!= NULL){
-                printf("Coup Impossible ! \n");
+                SDL_Log("Coup Impossible ! \n");
             }else{
-                printf("Coup Possible ! \n");
+                SDL_Log("Coup Possible ! \n");
                 turn(board,player,px,py);
             }
             data[0] = '\0';
         } else if (strcmp("WAITTURN", data) == 0) {
-            printf("C'est au tour de l'adversaire ! \n");
+            SDL_Log("C'est au tour de l'adversaire ! \n");
             int px;
             int py;
             recv(socketClient, &px, sizeof(px), 0);
@@ -108,20 +106,12 @@ int tictactoe(int socketClient) {
             turn(board,player,px,py);
             data[0] = '\0';
         } else if (strcmp("YOUWIN!!", data) == 0) {
-            printf("Vous avez gagné ! \n");
-            flag=1;
+            SDL_Log("Vous avez gagné ! \n");
+            program_launch = SDL_FALSE;
         } else if (strcmp("YOULOSE!", data) == 0) {
-            printf("Vous avez perdu ! \n");
-            flag=1;
+            SDL_Log("Vous avez perdu ! \n");
+            program_launch = SDL_FALSE;
         }
-    }
-
-
-    int swap = 0;
-    while(program_launch){
-        SDL_Event event;
-
-
 
 
         while(SDL_PollEvent(&event)){
