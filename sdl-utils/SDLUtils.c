@@ -46,14 +46,14 @@ void SDL_ExitWithError(const char *message){
     exit(EXIT_FAILURE);
 }
 
-void createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, int width, int height){
+void createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, int width, int height, Uint8 red, Uint8 green, Uint8 blue){
     //this opens a font style and sets a size
     TTF_Font * font = TTF_OpenFont("../assets/Roboto-Regular.ttf", 24);
 
 // this is the color in rgb format,
 // maxing out all would give you the color white,
 // and it will be your text's color
-    SDL_Color white = {255, 255, 255};
+    SDL_Color white = {red, green, blue};
 
 // as TTF_RenderText_Solid could only be used on
 // SDL_Surface then you have to create the surface first
