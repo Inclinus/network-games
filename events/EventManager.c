@@ -2,20 +2,24 @@
 #include <stdio.h>
 #include "EventManager.h"
 
+void initQueue(NG_Queue ** queue);
 
-NG_Queue * networkQueue;
+NG_Queue * networkReceivedQueue;
 NG_Queue * sdlQueue;
 
+
 void eventManagerInit(){
-    networkQueue = malloc(sizeof(NG_Queue));
-    networkQueue->firstElement = malloc(sizeof(NG_Queue_Element));
-    networkQueue->size = 0;
-    sdlQueue = malloc(sizeof(NG_Queue));
-    sdlQueue->firstElement = malloc(sizeof(NG_Queue_Element));
-    sdlQueue->size = 0;
+    initQueue(&networkReceivedQueue);
+    initQueue(&sdlQueue);
 }
 
-void addToQueue(NG_Event event, NG_Queue * queue){
+void initQueue(NG_Queue ** queue){
+    *queue = malloc(sizeof(NG_Queue));
+    (*queue)->firstElement = malloc(sizeof(NG_Queue_Element));
+    (*queue)->size = 0;
+}
+
+void addToQueue(NG_Event * event, NG_Queue * queue){
     NG_Queue_Element * element = malloc(sizeof(NG_Queue_Element));
     element->event = event;
     element->next = NULL;
@@ -41,18 +45,18 @@ void addToQueue(NG_Event event, NG_Queue * queue){
     queue->size++;
 }
 
-void sendEvent(NG_Event event){
-    if(event.type==SDL){
-        printf("EVENT SENT [SDL] : %s",event.instructions);
+void sendEvent(NG_Event * event){
+    if(event->type==SDL){
+        printf("EVENT SENT [SDL] : %s",event->instructions);
         addToQueue(event,sdlQueue);
-    } else if(event.type==NETWORK){
-        printf("EVENT SENT [NETWORK] : %s",event.instructions);
-        addToQueue(event,networkQueue);
+    } else if(event->type == NETWORK){
+        printf("EVENT SENT [NETWORK] : %s",event->instructions);
+        addToQueue(event, networkReceivedQueue);
     }
 }
 
-void removeElement(NG_Queue * queue, NG_Event * ngEvent){
-    *ngEvent = queue->firstElement->event;
+void pickUpEvent(NG_Queue * queue, NG_Event * ngEvent){
+    ngEvent = queue->firstElement->event;
     printf("EVENT PICKED UP : %s",ngEvent->instructions);
     NG_Queue_Element * newFirstElement = queue->firstElement->next;
     newFirstElement->previous = NULL;
@@ -61,27 +65,12 @@ void removeElement(NG_Queue * queue, NG_Event * ngEvent){
     queue->size--;
 }
 
-int listenEventsOfType(NG_EventType type, NG_Event * ngEvent){
-    if(type==SDL){
-        if(sdlQueue->size!=0){
-            removeElement(sdlQueue,ngEvent);
-            return 1;
-        } else return 0;
-    } else if(type==NETWORK){
-        if(networkQueue->size!=0){
-            removeElement(networkQueue,ngEvent);
-            return 1;
-        } else return 0;
-    }
-    return 0;
-}
-
-int listenEvents(NG_Event * ngEvent){
-    if(networkQueue->size!=0){
-        removeElement(networkQueue,ngEvent);
+int listenAllEvents(NG_Event * ngEvent){
+    if(networkReceivedQueue->size != 0){
+        pickUpEvent(networkReceivedQueue, ngEvent);
         return 1;
     } else if(sdlQueue->size!=0){
-        removeElement(sdlQueue,ngEvent);
+        pickUpEvent(sdlQueue, ngEvent);
         return 1;
     } else return 0;
 }

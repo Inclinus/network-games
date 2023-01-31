@@ -9,7 +9,7 @@ typedef struct NG_Event{
 } NG_Event;
 
 typedef struct NG_Queue_Element {
-    struct NG_Event event;
+    struct NG_Event * event;
     struct NG_Queue_Element * next;
     struct NG_Queue_Element * previous;
 } NG_Queue_Element;
@@ -19,7 +19,11 @@ typedef struct NG_Queue{
     int size;
 } NG_Queue;
 
+// INIT : MUST BE CALLED BEFORE ALL INTERACTIONS WITH THE EVENTMANAGER
 void eventManagerInit();
-void sendEvent(NG_Event event);
-int listenEventsOfType(NG_EventType type, NG_Event * ngEvent);
-int listenEvents(NG_Event * ngEvent);
+
+// Send an event
+void sendEvent(NG_Event * event);
+
+// Listen for NETWORK and SDL events
+int listenAllEvents(NG_Event * ngEvent);
