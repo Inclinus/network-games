@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <SDL2/SDL_log.h>
 #include "EventManager.h"
 
 void initQueue(NG_Queue ** queue);
@@ -21,7 +22,7 @@ void initQueue(NG_Queue ** queue){
 
 void addToQueue(NG_Event * event, NG_Queue * queue){
     NG_Queue_Element * element = malloc(sizeof(NG_Queue_Element));
-    element->event = event;
+    element->event = event; 
     element->next = NULL;
     // Si la firstElement n'est pas vide
     if(queue->size != 0){
@@ -47,10 +48,10 @@ void addToQueue(NG_Event * event, NG_Queue * queue){
 
 void sendEvent(NG_Event * event){
     if(event->type==SDL){
-        printf("EVENT SENT [SDL] : %s",event->instructions);
+        SDL_Log("EVENT SENT [SDL] : %s",event->instructions);
         addToQueue(event,sdlQueue);
     } else if(event->type == NETWORK){
-        printf("EVENT SENT [NETWORK] : %s",event->instructions);
+        SDL_Log("EVENT SENT [NETWORK] : %s",event->instructions);
         addToQueue(event, networkReceivedQueue);
     }
 }
