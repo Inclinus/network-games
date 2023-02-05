@@ -81,3 +81,16 @@ void createTextZone(SDL_Renderer * renderer, const char * text, int posX, int po
 // and coordinate of your texture
     SDL_RenderCopy(renderer, messageTexture, NULL, &messageRectangle);
 }
+
+void createCircle(SDL_Renderer * renderer, int x, int y, int radius)
+{
+    int x1, y1;
+    float angle;
+
+    for (angle = 0; angle < 360; angle += 0.1)
+    {
+        x1 = x + (radius * cos(angle * M_PI / 180));
+        y1 = y + (radius * sin(angle * M_PI / 180));
+        SDL_RenderDrawPoint(renderer, x1, y1);
+    }
+}

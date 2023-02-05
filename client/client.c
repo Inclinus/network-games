@@ -49,7 +49,7 @@ int main() {
         printf("ERREUR DE PROTOCOLE !\n");
     }
 
-    tictactoe(socketClient);
+    tictactoe(&socketClient);
 
     close(socketClient);
 

@@ -1,1 +1,1 @@
-int tictactoe(int socketClient);
+int tictactoe(int * socketClient);

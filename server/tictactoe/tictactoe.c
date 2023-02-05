@@ -138,7 +138,7 @@ void processPlayerTurn(int playerID,int socketPlayer1, int socketPlayer2, int **
         printf("Coup POSSIBLE SEND TO CLIENT ! \n");
         char pos[7];
         sprintf(pos,"YES%d-%d",px,py);
-        send(socketPlayer1, pos, 3, 0);
+        send(socketPlayer1, pos, sizeof(pos), 0);
         send(socketPlayer2, &px, sizeof(px), 0);
         send(socketPlayer2, &py, sizeof(py), 0);
     } else {

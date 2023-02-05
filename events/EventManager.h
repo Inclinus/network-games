@@ -26,4 +26,4 @@ void eventManagerInit();
 void sendEvent(NG_Event * event);
 
 // Listen for NETWORK and SDL events
-int listenAllEvents(NG_Event * ngEvent);
+NG_Event * listenAllEvents();
