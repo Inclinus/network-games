@@ -12,7 +12,7 @@ struct Player {
     int id;
 };
 
-void processPlayerTurn(int playerID, int socketPlayer1, int socketPlayer2, int **board, int player);
+void processPlayerTurn(int playerID, int socketPlayer1, int socketPlayer2, int **board, int player, int * flag);
 
 int win(int winner, int loser, int player);
 
@@ -38,7 +38,7 @@ int turn(int ** board, int player, int px, int py)
         board[px][py]=2;
         return 1;
     }else{
-        printf("Coup Impossible ! \n");
+        printf("Coup Impossible ! Une erreur est survenue\n");
         printboard(board);
         return 0;
     }
@@ -101,9 +101,9 @@ int tictactoe(int socketPlayer1, int socketPlayer2) {
         printboard(board);
 
         if (player%2==0){
-            processPlayerTurn(1,socketPlayer1, socketPlayer2, board, player);
+            processPlayerTurn(1,socketPlayer1, socketPlayer2, board, player,&flag);
         } else if (player%2==1){
-            processPlayerTurn(2,socketPlayer2, socketPlayer1, board, player);
+            processPlayerTurn(2,socketPlayer2, socketPlayer1, board, player,&flag);
         }
 
         if (winCondition(board,1)){
@@ -126,7 +126,7 @@ int win(int winner, int loser, int player) {
     return 1;
 }
 
-void processPlayerTurn(int playerID,int socketPlayer1, int socketPlayer2, int **board, int player) {
+void processPlayerTurn(int playerID,int socketPlayer1, int socketPlayer2, int **board, int player, int * flag) {
     printf("C'est au tour du joueur %d !\n",playerID);
     send(socketPlayer1, "YOURTURN", 8, 0);
     send(socketPlayer2, "WAITTURN", 8, 0);
@@ -135,14 +135,10 @@ void processPlayerTurn(int playerID,int socketPlayer1, int socketPlayer2, int **
     recv(socketPlayer1, &px, sizeof(px), 0);
     recv(socketPlayer1, &py, sizeof(py), 0);
     if(turn(board,player,px,py)){
-        printf("Coup POSSIBLE SEND TO CLIENT ! \n");
-        char pos[7];
-        sprintf(pos,"YES%d-%d",px,py);
-        send(socketPlayer1, pos, sizeof(pos), 0);
+        printf("Envoi du coup à l'autre joueur ! \n");
         send(socketPlayer2, &px, sizeof(px), 0);
         send(socketPlayer2, &py, sizeof(py), 0);
     } else {
-        printf("Coup IMPOSSIBLE SEND TO CLIENT ! \n");
-        send(socketPlayer1, "NOK", 3, 0);
+        *flag = 1;
     }
 }

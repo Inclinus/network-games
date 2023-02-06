@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "SDLUtils.h"
+#include <math.h>
 
 void changeColor(SDL_Renderer * renderer,int red, int green, int blue){
     if(SDL_SetRenderDrawColor(renderer,red,green,blue,SDL_ALPHA_OPAQUE) != 0)

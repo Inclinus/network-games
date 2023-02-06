@@ -82,9 +82,10 @@ void *networkListen() {
     disconnectEvent->instructions = malloc(sizeof(char)*12);
     disconnectEvent->instructions = "DISCONNECTED";
 
-    char data[8];
     int player = 1;
     while (program_launched) {
+        char data[9];
+        memset(data, '\0', sizeof(data));
         if (recv(*clientSocket, data, 8, 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
@@ -107,16 +108,13 @@ void *networkListen() {
             } else {
                 NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
                 receivedDataEvent->type = NETWORK;
-                receivedDataEvent->instructions = malloc(sizeof(char)*10);
+                unsigned long len = strlen(data);
+                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
+                receivedDataEvent->instructions = malloc(sizeof(char)*len);
                 strcpy(receivedDataEvent->instructions,data);
                 sendEvent(receivedDataEvent);
             }
         }
-        // 2-0
-
-
-
-        data[0] = '\0';
     }
 
 
@@ -168,23 +166,18 @@ int tictactoe(int * socketClient) {
         return 1;
     }
 
-    regex_t enemyPosRegex;
-    if (regcomp(&enemyPosRegex, "^YES[0-9]-[0-9]$", REG_EXTENDED | REG_NOSUB) != 0) {
-        fprintf(stderr, "Error: Could not compile regular expression\n");
-        return 1;
-    }
-
     int swap = 0;
+
+    SDL_bool yourTurn = SDL_FALSE;
 
     while (program_launched) {
         NG_Event * event = NULL;
-        SDL_bool yourTurn = SDL_FALSE;
         while ((event=listenAllEvents()) != NULL) {
             SDL_Log("TICTACTOE : EVENT RECEIVED");
             if (event->type == SDL) {
                 SDL_Log("TICTACTOE : SDL EVENT RECEIVED %s",event->instructions);
                 if (regexec(&posRegex, event->instructions, 0, NULL, 0) == 0) {
-                    if(yourTurn){
+                    if(yourTurn==SDL_TRUE){
                         int x, y;
                         sscanf(event->instructions, "%d-%d", &x, &y);
                         if(tryPlace(SDL_FALSE,board,x,y)){
@@ -211,7 +204,7 @@ int tictactoe(int * socketClient) {
                 } else if (strcmp("ENEMYTURN", event->instructions) == 0) {
                     SDL_Log("C'est au tour de l'adversaire ! \n");
                     yourTurn = SDL_FALSE;
-                } else if (regexec(&enemyPosRegex, event->instructions, 0, NULL, 0) == 0) {
+                } else if (regexec(&posRegex, event->instructions, 0, NULL, 0) == 0) {
                     int x, y;
                     sscanf(event->instructions, "%d-%d", &x, &y);
                     placeSymbol(board, 2, x, y);
