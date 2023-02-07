@@ -7,16 +7,18 @@
 #include <string.h>
 #include <netdb.h>
 #include "tictactoe/tictactoe.h"
+#include "../events/EventManager.h"
 
 int main() {
+    eventManagerInit();
     int socketClient = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addrServer;
     // gethostbyname() -> permet d'utilise le DNS
     // projetc.neo-serv.fr -> 92.222.131.57
 
     struct hostent *ipserveur;
-    //ipserveur = gethostbyname("localhost");
-    ipserveur = gethostbyname("projetc.neo-serv.fr");
+    ipserveur = gethostbyname("localhost");
+    //ipserveur = gethostbyname("projetc.neo-serv.fr");
 
     if (ipserveur == NULL) {
         printf("ERREUR, l'host n'a pas été trouver\n");
@@ -47,7 +49,7 @@ int main() {
         printf("ERREUR DE PROTOCOLE !\n");
     }
 
-    tictactoe(socketClient);
+    tictactoe(&socketClient);
 
     close(socketClient);
 

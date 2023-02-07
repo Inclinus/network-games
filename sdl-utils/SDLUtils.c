@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "SDLUtils.h"
+#include <math.h>
 
 void changeColor(SDL_Renderer * renderer,int red, int green, int blue){
     if(SDL_SetRenderDrawColor(renderer,red,green,blue,SDL_ALPHA_OPAQUE) != 0)
@@ -43,4 +45,53 @@ void SDL_ExitWithError(const char *message){
     SDL_Log("ERREUR : %s > %s\n", message, SDL_GetError());
     SDL_Quit();
     exit(EXIT_FAILURE);
+}
+
+void createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, int width, int height, Uint8 red, Uint8 green, Uint8 blue){
+    //this opens a font style and sets a size
+    TTF_Font * font = TTF_OpenFont("../assets/Roboto-Regular.ttf", 24);
+
+// this is the color in rgb format,
+// maxing out all would give you the color white,
+// and it will be your text's color
+    SDL_Color white = {red, green, blue};
+
+// as TTF_RenderText_Solid could only be used on
+// SDL_Surface then you have to create the surface first
+    SDL_Surface * surfaceMessage = TTF_RenderText_Solid(font,text, white);
+
+// now you can convert it into a texture
+    SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+    SDL_Rect messageRectangle; //create a rect
+    messageRectangle.x = posX;  //controls the rect's x coordinate
+    messageRectangle.y = posY; // controls the rect's y coordinte
+    messageRectangle.w = width; // controls the width of the rect
+    messageRectangle.h = height; // controls the height of the rect
+
+// (0,0) is on the top left of the window/screen,
+// think a rect as the text's box,
+// that way it would be very simple to understand
+
+// Now since it's a texture, you have to put RenderCopy
+// in your game loop area, the area where the whole code executes
+
+// you put the renderer's name first, the Message,
+// the crop size (you can ignore this if you don't want
+// to dabble with cropping), and the rect which is the size
+// and coordinate of your texture
+    SDL_RenderCopy(renderer, messageTexture, NULL, &messageRectangle);
+}
+
+void createCircle(SDL_Renderer * renderer, int x, int y, int radius)
+{
+    int x1, y1;
+    float angle;
+
+    for (angle = 0; angle < 360; angle += 0.1)
+    {
+        x1 = x + (radius * cos(angle * M_PI / 180));
+        y1 = y + (radius * sin(angle * M_PI / 180));
+        SDL_RenderDrawPoint(renderer, x1, y1);
+    }
 }
