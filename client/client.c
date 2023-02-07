@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include "tictactoe/tictactoe.h"
 #include "../events/EventManager.h"
+#include "connect4/connect4.h"
 
 int main() {
     eventManagerInit();
@@ -49,7 +50,8 @@ int main() {
         printf("ERREUR DE PROTOCOLE !\n");
     }
 
-    tictactoe(&socketClient);
+    //tictactoe(&socketClient);
+    connect4(&socketClient);
 
     close(socketClient);
 

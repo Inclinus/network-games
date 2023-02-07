@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
-#include "../sdl-utils/SDLUtils.h"
+#include "SDLUtils.h"
+#include "connect4.h"
 
 void checkFull(char **game, int *win);
 void checkLine(char **game, char color, int line, int *win);
@@ -26,7 +27,7 @@ char blue = 'B';
 // SDL Bool to do the game loop
 SDL_bool program_launched;
 
-int main() {
+int connect4(int * socketClient) {
 
 
     char **game = malloc(sizeof(char *) * SIZE);
