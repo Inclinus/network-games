@@ -7,6 +7,8 @@ MYSQL * connectBdd();
 
 int closeBdd(MYSQL *con);
 
+int createUser(MYSQL *con, char *username, char *password);
+
 int checkUser(MYSQL *con, char *username, char *password);
 
 #endif

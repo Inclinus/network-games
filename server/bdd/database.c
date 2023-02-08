@@ -29,6 +29,16 @@ int closeBdd(MYSQL *con)
     return 0;
 }
 
+int createUser(MYSQL *con, char *username, char *password) {
+    char query[100];
+    sprintf(query, "INSERT INTO users (login, password) VALUES ('%s','%s')", username, password);
+    if (mysql_query(con, query)) {
+        fprintf(stderr, "%s\n", mysql_error(con));
+        return 1;
+    }
+    return 0;
+}
+
 int checkUser(MYSQL *con, char *username, char *password) {
     char query[100];
     sprintf(query, "SELECT COUNT(*) FROM users WHERE login='%s' AND password='%s'", username, password);
