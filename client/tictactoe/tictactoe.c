@@ -116,8 +116,6 @@ void *networkListen() {
             }
         }
     }
-
-
 }
 
 SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py){
@@ -165,8 +163,6 @@ int tictactoe(int * socketClient) {
         fprintf(stderr, "Error: Could not compile regular expression\n");
         return 1;
     }
-
-    int swap = 0;
 
     SDL_bool yourTurn = SDL_FALSE;
 
