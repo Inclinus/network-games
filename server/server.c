@@ -8,6 +8,7 @@
 #include <string.h>
 #include <pthread.h>
 #include "tictactoe/tictactoe.h"
+#include "bdd/database.h"
 
 typedef struct GameArgs {
     int socketPlayer1;
@@ -60,6 +61,23 @@ int main() {
     int maxJoueur = 255;
     int *socketClient = (int*)malloc(maxJoueur*sizeof(int));
     int GameId = 0;
+
+    // TEST BDD
+    MYSQL *con = connectBdd();
+
+    if (con == NULL) {
+        exit(1);
+    }
+
+    if(checkUser(con, "test", "test1")){
+        printf("L'utilisateur existe et le mot de passe sont correct\n");
+    } else {
+        printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
+    }
+
+    closeBdd(con);
+
+    // FIN TEST BDD
 
     while (nbJoueur < maxJoueur){
         int connected = 0;
