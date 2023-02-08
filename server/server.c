@@ -69,7 +69,7 @@ int main() {
         exit(1);
     }
 
-    //createUser(con, "test2", "test2");
+    createUser(con, "test3", "test4");
 
     if(checkUser(con, "test", "test1")){
         printf("L'utilisateur existe et le mot de passe sont correct\n");

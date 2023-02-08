@@ -2,6 +2,8 @@
 #include <mysql/mysql.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../libs/bcrypt/bcrypt.h"
+#include <pwd.h>
 
 MYSQL * connectBdd()
 {
@@ -30,8 +32,17 @@ int closeBdd(MYSQL *con)
 }
 
 int createUser(MYSQL *con, char *username, char *password) {
+
+    char salt[] = "$2y$10$";
+    char encrypted_password[BCRYPT_HASHSIZE];
+
+    if (bcrypt_hashpw(password, salt, encrypted_password) != 0) {
+        fprintf(stderr, "%s\n", "Erreur lors de l'encryption du mot de passe");
+        return 1;
+    }
+
     char query[100];
-    sprintf(query, "INSERT INTO users (login, password) VALUES ('%s','%s')", username, password);
+    sprintf(query, "INSERT INTO users (login, password) VALUES ('%s','%s')", username, encrypted_password);
     if (mysql_query(con, query)) {
         fprintf(stderr, "%s\n", mysql_error(con));
         return 1;
