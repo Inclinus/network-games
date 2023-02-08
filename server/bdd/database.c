@@ -33,7 +33,8 @@ int closeBdd(MYSQL *con)
 
 int createUser(MYSQL *con, char *username, char *password) {
 
-    char salt[] = "$2y$10$";
+    char salt[BCRYPT_HASHSIZE];
+    bcrypt_gensalt(12, salt);
     char encrypted_password[BCRYPT_HASHSIZE];
 
     if (bcrypt_hashpw(password, salt, encrypted_password) != 0) {
@@ -41,18 +42,35 @@ int createUser(MYSQL *con, char *username, char *password) {
         return 1;
     }
 
-    char query[100];
-    sprintf(query, "INSERT INTO users (login, password) VALUES ('%s','%s')", username, encrypted_password);
-    if (mysql_query(con, query)) {
+    char query1[100];
+    sprintf(query1, "SELECT COUNT(*) FROM users WHERE login='%s'", username);
+    if (mysql_query(con, query1)) {
         fprintf(stderr, "%s\n", mysql_error(con));
+        return 2;
+    }
+
+    MYSQL_RES *res = mysql_use_result(con);
+    MYSQL_ROW row = mysql_fetch_row(res);
+
+    if (atoi(row[0]) == 1) {
+        // L'utilisateur existe déjà
+        mysql_free_result(res);
         return 1;
+    }
+    mysql_free_result(res);
+
+    char query2[100];
+    sprintf(query2, "INSERT INTO users (login, password) VALUES ('%s','%s')", username, encrypted_password);
+    if (mysql_query(con, query2)) {
+        fprintf(stderr, "%s\n", mysql_error(con));
+        return 2;
     }
     return 0;
 }
 
 int checkUser(MYSQL *con, char *username, char *password) {
     char query[100];
-    sprintf(query, "SELECT COUNT(*) FROM users WHERE login='%s' AND password='%s'", username, password);
+    sprintf(query, "SELECT password FROM users WHERE login='%s'", username);
     if (mysql_query(con, query)) {
         fprintf(stderr, "%s\n", mysql_error(con));
         return 0;
@@ -60,7 +78,9 @@ int checkUser(MYSQL *con, char *username, char *password) {
     MYSQL_RES *res = mysql_use_result(con);
     MYSQL_ROW row = mysql_fetch_row(res);
 
-    if (atoi(row[0]) == 1) {
+    printf("HASH : %s\n", row[0]);
+
+    if(bcrypt_checkpw(password, row[0]) == 0){
         // L'utilisateur existe et le mot de passe est correct
         mysql_free_result(res);
         return 1;
