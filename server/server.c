@@ -69,9 +69,13 @@ int main() {
         exit(1);
     }
 
-    createUser(con, "test3", "test4");
+    if (createUser(con, "tibo", "mdpdeouf") == 0) {
+        printf("L'utilisateur a bien été créer\n");
+    } else {
+        printf("L'utilisateur n'a pas pu être créer\n");
+    }
 
-    if(checkUser(con, "test", "test1")){
+    if(checkUser(con, "tibo", "mdpdeouf")){
         printf("L'utilisateur existe et le mot de passe sont correct\n");
     } else {
         printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
