@@ -56,6 +56,10 @@ void sendEvent(NG_Event * event){
     }
 }
 
+void clearQueues(){
+    // TODO Implement clear queues
+}
+
 static NG_Event * pickUpEvent(NG_Queue * queue){
     NG_Event  * ngEvent = queue->firstElement->event;
     if(ngEvent->type==SDL){
