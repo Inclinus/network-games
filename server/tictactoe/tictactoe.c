@@ -15,6 +15,7 @@ struct Player {
 void processPlayerTurn(int playerID, int socketPlayer1, int socketPlayer2, int **board, int player, int * flag);
 
 int win(int winner, int loser, int player);
+int draw(int player1, int player2);
 
 void printboard(int ** board)
 {
@@ -112,6 +113,9 @@ int tictactoe(int socketPlayer1, int socketPlayer2) {
             flag = win(socketPlayer2, socketPlayer1, 2);
         }
 
+        if(player>=10){
+            flag = draw(socketPlayer2,socketPlayer1);
+        }
     }
     free(row);
     free(board);
@@ -123,6 +127,12 @@ int win(int winner, int loser, int player) {
     printf("Le joueur %d a gagné !\n",player);
     send(winner, "YOUWIN!!", 8, 0);
     send(loser, "YOULOSE!", 8, 0);
+    return 1;
+}
+
+int draw(int player1, int player2){
+    send(player1, "DRAWDRAW", 8, 0);
+    send(player2, "DRAWDRAW", 8, 0);
     return 1;
 }
 

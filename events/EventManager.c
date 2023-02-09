@@ -56,6 +56,7 @@ void sendEvent(NG_Event * event){
     }
 }
 
+
 static NG_Event * pickUpEvent(NG_Queue * queue){
     NG_Event  * ngEvent = queue->firstElement->event;
     if(ngEvent->type==SDL){
@@ -69,12 +70,21 @@ static NG_Event * pickUpEvent(NG_Queue * queue){
     if(queue->firstElement->next!=NULL){
         NG_Queue_Element * newFirstElement = queue->firstElement->next;
         newFirstElement->previous = NULL;
-        //NG_Queue_Element * oldFirstElement = queue->firstElement;
+        NG_Queue_Element * oldFirstElement = queue->firstElement;
         queue->firstElement = newFirstElement;
-        //free(oldFirstElement);
+        free(oldFirstElement);
     }
     queue->size--;
     return ngEvent;
+}
+
+void clearQueues(){
+    while(networkReceivedQueue->size!=0){
+        pickUpEvent(networkReceivedQueue);
+    }
+    while(sdlQueue->size!=0){
+        pickUpEvent(networkReceivedQueue);
+    }
 }
 
 NG_Event * listenAllEvents(){

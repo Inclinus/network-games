@@ -211,7 +211,11 @@ int tictactoe(int * socketClient) {
                 } else if (strcmp("YOULOSE!", event->instructions) == 0) {
                     SDL_Log("Vous avez perdu ! \n");
                     program_launched = SDL_FALSE;
-                } else {
+                }  else if (strcmp("DRAWDRAW", event->instructions) == 0) {
+                    SDL_Log("Personne n'a gagné ! \n");
+                    program_launched = SDL_FALSE;
+                }
+                else {
                     fprintf(stderr,"WTF IS THAT NETWORK EVENT : %s",event->instructions);
                 }
             }
