@@ -12,6 +12,11 @@ struct Player {
     int id;
 };
 
+void processPlayerTurn(int playerID, int socketPlayer1, int socketPlayer2, int **board, int player, int * flag);
+
+int win(int winner, int loser, int player);
+int draw(int player1, int player2);
+
 void printboard(int ** board)
 {
     for (int i = 2; i >=0; --i)
@@ -34,7 +39,7 @@ int turn(int ** board, int player, int px, int py)
         board[px][py]=2;
         return 1;
     }else{
-        printf("Coup Impossible ! \n");
+        printf("Coup Impossible ! Une erreur est survenue\n");
         printboard(board);
         return 0;
     }
@@ -97,56 +102,53 @@ int tictactoe(int socketPlayer1, int socketPlayer2) {
         printboard(board);
 
         if (player%2==0){
-            printf("C'est au tour du joueur 1 !\n");
-            send(socketPlayer1, "YOURTURN", 8, 0);
-            send(socketPlayer2, "WAITTURN", 8, 0);
-            int px;
-            int py;
-            recv(socketPlayer1, &px, sizeof(px), 0);
-            recv(socketPlayer1, &py, sizeof(py), 0);
-            if(turn(board,player,px,py)){
-                printf("Coup POSSIBLE SEND TO CLIENT ! \n");
-                send(socketPlayer1, "YES", 3, 0);
-                send(socketPlayer2, &px, sizeof(px), 0);
-                send(socketPlayer2, &py, sizeof(py), 0);
-            } else {
-                printf("Coup IMPOSSIBLE SEND TO CLIENT ! \n");
-                send(socketPlayer1, "NOK", 3, 0);
-            }
+            processPlayerTurn(1,socketPlayer1, socketPlayer2, board, player,&flag);
         } else if (player%2==1){
-            printf("C'est au tour du joueur 2 !\n");
-            send(socketPlayer1, "WAITTURN", 8, 0);
-            send(socketPlayer2, "YOURTURN", 8, 0);
-            int px;
-            int py;
-            recv(socketPlayer2, &px, sizeof(px), 0);
-            recv(socketPlayer2, &py, sizeof(py), 0);
-            if(turn(board,player,px,py)){
-                printf("Coup POSSIBLE SEND TO CLIENT ! \n");
-                send(socketPlayer2, "YES", 3, 0);
-                send(socketPlayer1, &px, sizeof(px), 0);
-                send(socketPlayer1, &py, sizeof(py), 0);
-            } else {
-                printf("Coup IMPOSSIBLE SEND TO CLIENT ! \n");
-                send(socketPlayer2, "NOK", 3, 0);
-            }
+            processPlayerTurn(2,socketPlayer2, socketPlayer1, board, player,&flag);
         }
 
         if (winCondition(board,1)){
-            printf("Le joueur 1 a gagné !\n");
-            send(socketPlayer1, "YOUWIN!!", 8, 0);
-            send(socketPlayer2, "YOULOSE!", 8, 0);
-            flag=1;
-        }else if (winCondition(board,2)){
-            printf("Le joueur 2 a gagné !\n");
-            send(socketPlayer1, "YOULOSE!", 8, 0);
-            send(socketPlayer2, "YOUWIN!!", 8, 0);
-            flag=1;
+            flag = win(socketPlayer1, socketPlayer2, 1);
+        } else if (winCondition(board,2)){
+            flag = win(socketPlayer2, socketPlayer1, 2);
         }
 
+        if(player>=10){
+            flag = draw(socketPlayer2,socketPlayer1);
+        }
     }
     free(row);
     free(board);
 
     return 0;
+}
+
+int win(int winner, int loser, int player) {
+    printf("Le joueur %d a gagné !\n",player);
+    send(winner, "YOUWIN!!", 8, 0);
+    send(loser, "YOULOSE!", 8, 0);
+    return 1;
+}
+
+int draw(int player1, int player2){
+    send(player1, "DRAWDRAW", 8, 0);
+    send(player2, "DRAWDRAW", 8, 0);
+    return 1;
+}
+
+void processPlayerTurn(int playerID,int socketPlayer1, int socketPlayer2, int **board, int player, int * flag) {
+    printf("C'est au tour du joueur %d !\n",playerID);
+    send(socketPlayer1, "YOURTURN", 8, 0);
+    send(socketPlayer2, "WAITTURN", 8, 0);
+    int px;
+    int py;
+    recv(socketPlayer1, &px, sizeof(px), 0);
+    recv(socketPlayer1, &py, sizeof(py), 0);
+    if(turn(board,player,px,py)){
+        printf("Envoi du coup à l'autre joueur ! \n");
+        send(socketPlayer2, &px, sizeof(px), 0);
+        send(socketPlayer2, &py, sizeof(py), 0);
+    } else {
+        *flag = 1;
+    }
 }
