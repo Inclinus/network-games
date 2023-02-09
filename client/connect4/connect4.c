@@ -213,6 +213,8 @@ int connect4(int * socketClient) {
                     connect_launched = SDL_FALSE;
                 } else if (strcmp("YOURTURN", event->instructions) == 0) {
                     SDL_Log("C'est à vous de jouer ! \n");
+                    createTextZone(rendererConnect4,"C'est à vous de jouer",50,10,0,20,25);
+                    updateRenderer(rendererConnect4);
                     yourTurn = SDL_TRUE;
                 } else if (strcmp("ENEMYTURN", event->instructions) == 0) {
                     SDL_Log("C'est au tour de l'adversaire ! \n");

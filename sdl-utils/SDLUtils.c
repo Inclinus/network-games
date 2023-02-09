@@ -39,6 +39,9 @@ void initSDL(){
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0){
         SDL_ExitWithError("SDL init failed");
     }
+    if(TTF_Init()==-1){
+        SDL_ExitWithError("SDL_ttf init failed");
+    }
 }
 
 void SDL_ExitWithError(const char *message){
@@ -47,40 +50,36 @@ void SDL_ExitWithError(const char *message){
     exit(EXIT_FAILURE);
 }
 
-void createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, int width, int height, Uint8 red, Uint8 green, Uint8 blue){
-    //this opens a font style and sets a size
-    TTF_Font * font = TTF_OpenFont("../assets/Roboto-Regular.ttf", 24);
+SDL_Rect * createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, Uint8 red, Uint8 green, Uint8 blue){
 
-// this is the color in rgb format,
-// maxing out all would give you the color white,
-// and it will be your text's color
-    SDL_Color white = {red, green, blue};
+    TTF_Font * font = TTF_OpenFont("/home/noam/Bureau/C/network-games/assets/Roboto-Regular.ttf", 24);
+    if(font==NULL){
+        SDL_ExitWithError("FONT NULL");
+    }
 
-// as TTF_RenderText_Solid could only be used on
-// SDL_Surface then you have to create the surface first
-    SDL_Surface * surfaceMessage = TTF_RenderText_Solid(font,text, white);
+    SDL_Color color = {red, green, blue};
 
-// now you can convert it into a texture
+    SDL_Surface * surfaceMessage;
+    if((surfaceMessage = TTF_RenderText_Solid(font,text, color))==NULL){
+        SDL_ExitWithError("SURFACE MESSAGE NULL");
+    }
+
     SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    if(messageTexture==NULL){
+        SDL_ExitWithError("TEXTURE MESSAGE NULL");
+    }
 
-    SDL_Rect messageRectangle; //create a rect
-    messageRectangle.x = posX;  //controls the rect's x coordinate
-    messageRectangle.y = posY; // controls the rect's y coordinte
-    messageRectangle.w = width; // controls the width of the rect
-    messageRectangle.h = height; // controls the height of the rect
+    SDL_Rect * messageRectangle = malloc(sizeof(SDL_Rect)); //create a rect
+    if(messageRectangle==NULL){
+        SDL_ExitWithError("MESSAGE RECTANGLE NULL");
+    }
+    messageRectangle->x = posX;  //controls the rect's x coordinate
+    messageRectangle->y = posY; // controls the rect's y coordinte
+    messageRectangle->w = surfaceMessage->w; // controls the width of the rect
+    messageRectangle->h = surfaceMessage->h; // controls the height of the rect
 
-// (0,0) is on the top left of the window/screen,
-// think a rect as the text's box,
-// that way it would be very simple to understand
-
-// Now since it's a texture, you have to put RenderCopy
-// in your game loop area, the area where the whole code executes
-
-// you put the renderer's name first, the Message,
-// the crop size (you can ignore this if you don't want
-// to dabble with cropping), and the rect which is the size
-// and coordinate of your texture
-    SDL_RenderCopy(renderer, messageTexture, NULL, &messageRectangle);
+    SDL_RenderCopy(renderer, messageTexture, NULL, messageRectangle);
+    return messageRectangle;
 }
 
 void createCircle(SDL_Renderer * renderer, int x, int y, int radius)
