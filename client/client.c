@@ -31,6 +31,28 @@ int login(int socketClient){
     }
 }
 
+int registercli(int socketClient){
+    send(socketClient, "REGISTER", 8, 0);
+    char buffer[25];
+    printf("Quel est votre pseudo : \n");
+    scanf("%s", buffer);
+    send(socketClient, buffer, sizeof(buffer), 0);
+    printf("Quel est votre mot de passe : \n");
+    scanf("%s", buffer);
+    send(socketClient, buffer, sizeof(buffer), 0);
+    char result[3];
+    recv(socketClient, result, sizeof(result), 0);
+    result[2] = '\0';
+    printf("RECU : %s\n", result);
+    if(strcmp(result, "OK") == 0){
+        printf("OK !\n");
+        return 1;
+    }else{
+        printf("NOK !\n");
+        return 0;
+    }
+}
+
 int main() {
     eventManagerInit();
     int socketClient = socket(AF_INET, SOCK_STREAM, 0);
@@ -65,7 +87,7 @@ int main() {
     if (action_login == 1) {
         while (login(socketClient) == 0);
     } else if (action_login == 2) {
-        send(socketClient, "REGISTER", 8, 0);
+        registercli(socketClient);
     } else {
         printf("ERREUR DE CHOIX !\n");
         exit(1);

@@ -51,24 +51,46 @@ void * login(int * socketClient){
 
     while(flag == 1) {
         printf("En attente de la demande de login ...\n");
-        char respons[8];
+        char respons[9];
         recv(*socketClient, respons, sizeof(respons), 0);
+        respons[8] = '\0';
         printf("RECU : %s\n", respons);
-        char buffer_login[25];
-        char buffer_password[25];
-        recv(*socketClient, buffer_login, sizeof(buffer_login), 0);
-        printf("RECU : %s\n", buffer_login);
-        recv(*socketClient, buffer_password, sizeof(buffer_password), 0);
-        printf("RECU : %s\n", buffer_password);
+        if (strcmp(respons, "LOGINCLI") == 0) {
+            char buffer_login[25];
+            char buffer_password[25];
+            recv(*socketClient, buffer_login, sizeof(buffer_login), 0);
+            printf("RECU : %s\n", buffer_login);
+            recv(*socketClient, buffer_password, sizeof(buffer_password), 0);
+            printf("RECU : %s\n", buffer_password);
 
-        if (checkUser(con, buffer_login, buffer_password) == 1) {
-            printf("L'utilisateur existe et le mot de passe sont correct\n");
-            send(*socketClient, "OK", 2, 0);
-            flag = 0;
+            if (checkUser(con, buffer_login, buffer_password) == 1) {
+                printf("L'utilisateur existe et le mot de passe sont correct\n");
+                send(*socketClient, "OK", 2, 0);
+                flag = 0;
+            } else {
+                printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
+                send(*socketClient, "KO", 2, 0);
+                flag = 1;
+            }
+        } else if (strcmp(respons, "REGISTER") == 0){
+            char buffer_login[25];
+            char buffer_password[25];
+            recv(*socketClient, buffer_login, sizeof(buffer_login), 0);
+            printf("RECU : %s\n", buffer_login);
+            recv(*socketClient, buffer_password, sizeof(buffer_password), 0);
+            printf("RECU : %s\n", buffer_password);
+
+            if (createUser(con, buffer_login, buffer_password) == 0) {
+                printf("L'utilisateur a bien été créer\n");
+                send(*socketClient, "OK", 2, 0);
+                flag = 0;
+            } else {
+                printf("L'utilisateur n'a pas pu être créer\n");
+                send(*socketClient, "KO", 2, 0);
+                flag = 1;
+            }
         } else {
-            printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
-            send(*socketClient, "KO", 2, 0);
-            flag = 1;
+            printf("ERREUR !\n");
         }
     }
 }
