@@ -67,21 +67,37 @@ SDL_bool tryPlay(char **game, int column, char color) {
     return SDL_TRUE;
 }
 
+void debugConnectBoard(char **game) {
+    SDL_Log("\n-----------------------------\n");
+    for (int i = 0; i < SIZE; i++) {
+        SDL_Log("| %d ", i + 1);
+    }
+    SDL_Log("|\n");
+    SDL_Log("-----------------------------\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            SDL_Log("| %c ", game[j][i]);
+        }
+        SDL_Log("|\n");
+    }
+    SDL_Log("-----------------------------\n");
+}
+
 int calculateBoardColumnPos(Sint32 x){
     if(x>600){
-        return 6;
+        return 7;
     } else if(x>500){
-        return 5;
+        return 6;
     } else if(x>400){
-        return 4;
+        return 5;
     } else if(x>300){
-        return 3;
+        return 4;
     } else if(x>200){
-        return 2;
+        return 3;
     } else if(x>100){
-        return 1;
+        return 2;
     } else {
-        return 0;
+        return 1;
     }
 }
 
@@ -131,6 +147,9 @@ void *sdlListener() {
 
 void *networkListener() {
     NG_Event *disconnectEvent = malloc(sizeof(NG_Event));
+    if(disconnectEvent==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING DISCONNECTEVENT EVENT");
+    }
     disconnectEvent->type = NETWORK;
     disconnectEvent->instructions = malloc(sizeof(char)*12);
     if(disconnectEvent->instructions==NULL){
@@ -241,6 +260,7 @@ int connect4(int * socketClient) {
                         int column;
                         sscanf(event->instructions, "POS%d", &column);
                         if(tryPlay(game,column,'B')){
+                            debugConnectBoard(game);
                             SDL_Log("Coup Possible ! \n");
                             send(*connect4ClientSocket, &column, sizeof(column), 0);
                             *yourTurn = SDL_FALSE;
@@ -272,6 +292,7 @@ int connect4(int * socketClient) {
                     int y;
                     sscanf(event->instructions, "ENEMY%d", &y);
                     tryPlay(game,y,'R');
+                    debugConnectBoard(game);
                     displayGameBoard(game);
                 } else if (strcmp("YOUWIN!!", event->instructions) == 0) {
                     SDL_Log("Vous avez gagné ! \n");
@@ -290,7 +311,7 @@ int connect4(int * socketClient) {
                 }
             }
             displayGameBoard(game);
-            setDisplayedFeedback("\0");
+            setDisplayedFeedback(" ");
         }
 
     }
@@ -301,8 +322,8 @@ int connect4(int * socketClient) {
 }
 
 void createSymbolCircle(char symbol, int x, int y){
-    int centerX = 50 + x * (650 - 50) / 2;
-    int centerY = 150 + y * (750 - 150) / 2;
+    int centerX = 50 + x * 100;
+    int centerY = 150 + y * 100;
     if(symbol=='B'){
         changeColor(rendererConnect4,0,0,255);
         createCircle(rendererConnect4,centerX,centerY,30);

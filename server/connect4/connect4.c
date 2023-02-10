@@ -147,8 +147,8 @@ int putOnColumn(char **game, int column, char color, int*win) {
     }
     if (count < 0) return 0;
     game[column - 1][count] = color;
-    printf("[DEBUG] Placed token on column %d, he fell to the column %d.\n", column, count + 1);
-    checkWin(game,color,column,count,win);
+    printf("[DEBUG] Placed token on column %d, he fell to the lines %d.\n", column, count + 1);
+    checkWin(game,color,column-1,count,win);
     return 1;
 }
 
