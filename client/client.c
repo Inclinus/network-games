@@ -9,8 +9,14 @@
 #include "tictactoe/tictactoe.h"
 #include "../events/EventManager.h"
 
-int login(int socketClient){
-    send(socketClient, "LOGINCLI", 8, 0);
+// action = 1 -> login
+// action = 2 -> register
+int login(int socketClient, int action){
+    if (action == 1) {
+        send(socketClient, "LOGINCLI", 8, 0);
+    } else if (action == 2) {
+        send(socketClient, "REGISTER", 8, 0);
+    }
     char buffer[25];
     printf("Quel est votre pseudo : \n");
     scanf("%s", buffer);
@@ -31,26 +37,16 @@ int login(int socketClient){
     }
 }
 
-int registercli(int socketClient){
-    send(socketClient, "REGISTER", 8, 0);
-    char buffer[25];
-    printf("Quel est votre pseudo : \n");
-    scanf("%s", buffer);
-    send(socketClient, buffer, sizeof(buffer), 0);
-    printf("Quel est votre mot de passe : \n");
-    scanf("%s", buffer);
-    send(socketClient, buffer, sizeof(buffer), 0);
-    char result[3];
-    recv(socketClient, result, sizeof(result), 0);
-    result[2] = '\0';
-    printf("RECU : %s\n", result);
-    if(strcmp(result, "OK") == 0){
-        printf("OK !\n");
-        return 1;
-    }else{
-        printf("NOK !\n");
-        return 0;
+int main_menu(int socketClient){
+    int action;
+    printf("1 - jouer \n 2 - quitter \n");
+    scanf("%d", &action);
+    if (action == 1) {
+
+    } else if (action == 2) {
+
     }
+    return 1;
 }
 
 int main() {
@@ -82,29 +78,20 @@ int main() {
 
     //printf("En attente d'adversaire ...\n");
     int action_login;
-    printf("1 - Se connecter\n2 - S'inscrire\n");
+    printf("1 - Se connecter\n 2 - S'inscrire\n");
     scanf("%d", &action_login);
     if (action_login == 1) {
-        while (login(socketClient) == 0);
+        while (login(socketClient, 1) == 0);
     } else if (action_login == 2) {
-        registercli(socketClient);
+        login(socketClient, 2);
     } else {
         printf("ERREUR DE CHOIX !\n");
         exit(1);
     }
 
-    char data[8];
-    recv(socketClient, data, 8, 0);
-    printf("[DEBUG] RECU : %s\n", data);
-    if (strcmp(data, "NICKNAME")) {
-        printf("Quel est votre pseudo : \n");
-        scanf("%s", data);
-        send(socketClient, data, sizeof(data), 0);
-    } else {
-        printf("ERREUR DE PROTOCOLE !\n");
-    }
+    main_menu(socketClient);
 
-    tictactoe(&socketClient);
+    //tictactoe(&socketClient);
 
     close(socketClient);
 
