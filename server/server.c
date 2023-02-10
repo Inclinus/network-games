@@ -39,6 +39,40 @@ void * startGame(void *args){
     return 0;
 }
 
+void * login(int * socketClient){
+
+    MYSQL *con = connectBdd();
+
+    if (con == NULL) {
+        exit(1);
+    }
+
+    int flag = 1;
+
+    while(flag == 1) {
+        printf("En attente de la demande de login ...\n");
+        char respons[8];
+        recv(*socketClient, respons, sizeof(respons), 0);
+        printf("RECU : %s\n", respons);
+        char buffer_login[25];
+        char buffer_password[25];
+        recv(*socketClient, buffer_login, sizeof(buffer_login), 0);
+        printf("RECU : %s\n", buffer_login);
+        recv(*socketClient, buffer_password, sizeof(buffer_password), 0);
+        printf("RECU : %s\n", buffer_password);
+
+        if (checkUser(con, buffer_login, buffer_password) == 1) {
+            printf("L'utilisateur existe et le mot de passe sont correct\n");
+            send(*socketClient, "OK", 2, 0);
+            flag = 0;
+        } else {
+            printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
+            send(*socketClient, "KO", 2, 0);
+            flag = 1;
+        }
+    }
+}
+
 int main() {
 
     int socketServer = socket(AF_INET, SOCK_STREAM, 0);
@@ -63,50 +97,48 @@ int main() {
     int GameId = 0;
 
     // TEST BDD
-    MYSQL *con = connectBdd();
+//    MYSQL *con = connectBdd();
+//
+//    if (con == NULL) {
+//        exit(1);
+//    }
+//
+//    if (createUser(con, "tibo", "mdpdeouf") == 0) {
+//        printf("L'utilisateur a bien été créer\n");
+//    } else {
+//        printf("L'utilisateur n'a pas pu être créer\n");
+//    }
 
-    if (con == NULL) {
-        exit(1);
-    }
+//    if(checkUser(con, "tibo", "mdpdeouf") == 0) {
+//        printf("L'utilisateur existe et le mot de passe sont correct\n");
+//    } else {
+//        printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
+//    }
 
-    if (createUser(con, "tibo", "mdpdeouf") == 0) {
-        printf("L'utilisateur a bien été créer\n");
-    } else {
-        printf("L'utilisateur n'a pas pu être créer\n");
-    }
-
-    if(checkUser(con, "tibo", "mdpdeouf")){
-        printf("L'utilisateur existe et le mot de passe sont correct\n");
-    } else {
-        printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
-    }
-
-    closeBdd(con);
-
+    //closeBdd(con);
     // FIN TEST BDD
 
     while (nbJoueur < maxJoueur){
-        int connected = 0;
-        while (connected < 2) {
-            listen(socketServer, maxJoueur - nbJoueur);
-            addrClient_lenght = sizeof(addrClient);
-            socketClient[nbJoueur] = accept(socketServer, (struct sockaddr *) &addrClient, &addrClient_lenght);
+        listen(socketServer, maxJoueur - nbJoueur);
+        addrClient_lenght = sizeof(addrClient);
+        socketClient[nbJoueur] = accept(socketServer, (struct sockaddr *) &addrClient, &addrClient_lenght);
 
-            if (socketClient[nbJoueur] < 0) {
-                printf("ERREUR DE CONNEXION AVEC LE CLIENT !\n");
-            }
-            printf("CONNEXION ACCEPTER DU CLIENT NUMERO :  %d\n", nbJoueur);
-
-            connected++;
-            nbJoueur++;
+        if (socketClient[nbJoueur] < 0) {
+            printf("ERREUR DE CONNEXION AVEC LE CLIENT !\n");
         }
-        GameArgs args;
-        args.socketPlayer1 = socketClient[nbJoueur-2];
-        args.socketPlayer2 = socketClient[nbJoueur-1];
-        args.GameId = GameId;
+        printf("CONNEXION ACCEPTER DU CLIENT NUMERO :  %d\n", nbJoueur);
+
+        nbJoueur++;
+
         pthread_t thread_id;
-        pthread_create(&thread_id, NULL, startGame, &args);
-        GameId++;
+        pthread_create(&thread_id, NULL, (void*)login, &socketClient[nbJoueur-1]);
+//        GameArgs args;
+//        args.socketPlayer1 = socketClient[nbJoueur-2];
+//        args.socketPlayer2 = socketClient[nbJoueur-1];
+//        args.GameId = GameId;
+//        pthread_t thread_id;
+//        pthread_create(&thread_id, NULL, startGame, &args);
+//        GameId++;
     }
 
 
