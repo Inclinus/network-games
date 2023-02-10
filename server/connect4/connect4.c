@@ -161,11 +161,13 @@ char getCharOf(int player){
 }
 
 void playerTurn(int playerID, int socketPlayer1, int socketPlayer2, char **game, int * win) {
-    printf("C'est au tour du joueur %d !\n",playerID);
+    printf("C'est au tour du WTF joueur %d !\n",playerID);
     send(socketPlayer1, "YOURTURN", 8, 0);
     send(socketPlayer2, "WAITTURN", 8, 0);
     int column;
     recv(socketPlayer1, &column, sizeof(column), 0);
+    fflush(stdout);
+    printf("RECEIVED PLAYER TURN POS : column %d",column);
     if(putOnColumn(game,column,getCharOf(playerID),win)){
         printf("Envoi du coup à l'autre joueur ! \n");
         send(socketPlayer2, &column, sizeof(column), 0);
@@ -175,7 +177,7 @@ void playerTurn(int playerID, int socketPlayer1, int socketPlayer2, char **game,
 }
 
 
-int connect4(int socketPlayer1, int socketPlayer2) {
+int connect4Server(int socketPlayer1, int socketPlayer2) {
 
     printf("PARTIE COMMENCE !\n");
 

@@ -1,1 +1,1 @@
-int connect4(int socketPlayer1, int socketPlayer2);
+int connect4Server(int socketPlayer1, int socketPlayer2);
