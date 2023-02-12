@@ -17,24 +17,29 @@ typedef struct GameArgs {
     int GameId;
 } GameArgs;
 
+typedef struct LoginArgs {
+    int socketClient;
+    int nbJoueur;
+} LoginArgs;
+
+GameArgs args;
+
+
 void * startGame(void *args){
     struct GameArgs *myargs;
     myargs = (struct GameArgs *) args;
 
     printf("La game id %d commence !\n",((GameArgs *)args)->GameId);
+    printf("Le joueur 1 est le socket %d\n",((GameArgs *)args)->socketPlayer1);
 
-    char data[25];
-    char data2[25];
+    while (myargs->socketPlayer1 == 0 || myargs->socketPlayer2 == 0) {
+        printf("En attente de joueur ...\n");
+        sleep(1);
+    }
+    printf("Le joueur 2 est le socket %d\n",((GameArgs *)args)->socketPlayer2);
 
-    send(myargs->socketPlayer1, "NICKNAME", 8, 0);
-    send(myargs->socketPlayer2, "NICKNAME", 8, 0);
-
-    recv(myargs->socketPlayer1, data, sizeof(data), 0);
-    recv(myargs->socketPlayer2, data2, sizeof(data), 0);
-
-    printf("NICKNAME 1 : %s\n", data);
-    printf("NICKNAME 2 : %s\n", data2);
-
+    send(myargs->socketPlayer1, "STARTGAME", 9, 0);
+    send(myargs->socketPlayer2, "STARTGAME", 9, 0);
 
     tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
     //connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
@@ -42,7 +47,10 @@ void * startGame(void *args){
     return 0;
 }
 
-void * login(int * socketClient){
+void * login(void * loginargs){;
+
+    struct LoginArgs *myloginargs;
+    myloginargs = (struct LoginArgs *) loginargs;
 
     MYSQL *con = connectBdd();
 
@@ -52,43 +60,70 @@ void * login(int * socketClient){
 
     int flag = 1;
 
-    while(flag == 1) {
+    int socketClient = myloginargs->socketClient;
+
+    while(flag) {
         printf("En attente de la demande de login ...\n");
         char respons[9];
-        recv(*socketClient, respons, sizeof(respons), 0);
+        recv(socketClient, respons, sizeof(respons), 0);
         respons[8] = '\0';
         printf("RECU : %s\n", respons);
 
         char buffer_login[25];
         char buffer_password[25];
-        recv(*socketClient, buffer_login, sizeof(buffer_login), 0);
+        recv(socketClient, buffer_login, sizeof(buffer_login), 0);
         printf("RECU : %s\n", buffer_login);
-        recv(*socketClient, buffer_password, sizeof(buffer_password), 0);
+        recv(socketClient, buffer_password, sizeof(buffer_password), 0);
         printf("RECU : %s\n", buffer_password);
 
         if (strcmp(respons, "LOGINCLI") == 0) {
             if (checkUser(con, buffer_login, buffer_password) == 1) {
                 printf("L'utilisateur existe et le mot de passe sont correct\n");
-                send(*socketClient, "OK", 2, 0);
+                send(socketClient, "OK", 2, 0);
                 flag = 0;
             } else {
                 printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
-                send(*socketClient, "KO", 2, 0);
+                send(socketClient, "KO", 2, 0);
                 flag = 1;
             }
         } else if (strcmp(respons, "REGISTER") == 0){
             if (createUser(con, buffer_login, buffer_password) == 0) {
                 printf("L'utilisateur a bien été créer\n");
-                send(*socketClient, "OK", 2, 0);
+                send(socketClient, "OK", 2, 0);
                 flag = 0;
             } else {
                 printf("L'utilisateur n'a pas pu être créer\n");
-                send(*socketClient, "KO", 2, 0);
+                send(socketClient, "KO", 2, 0);
                 flag = 1;
             }
         } else {
             printf("WTF THIS PACKET !\n");
+            exit(EXIT_FAILURE);
         }
+    }
+    char choix[6];
+    // QUEUE
+    // STATS
+    recv(socketClient, choix, sizeof(choix), 0);
+    choix[5] = '\0';
+    printf("RECU AFTER AUTH : %s\n", choix);
+    if (strcmp(choix, "QUEUE") == 0) {
+        if (myloginargs->nbJoueur%2 == 0) {
+            printf("CREATION DE LOBBY !\n");
+            args.socketPlayer1 = socketClient;
+            args.socketPlayer2 = 0;
+            args.GameId = 1;
+            pthread_t threadGame;
+            pthread_create(&threadGame, NULL, startGame, (void *)&args);
+        } else if (myloginargs->nbJoueur%2 == 1) {
+            printf("JOIN DE LOBBY !\n");
+            args.socketPlayer2 = socketClient;
+        }
+    } else if (strcmp(choix, "STATS") == 0) {
+        // TODO STATS
+    } else {
+        printf("WTF THIS PACKET !\n");
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -137,6 +172,10 @@ int main() {
     //closeBdd(con);
     // FIN TEST BDD
 
+    args.socketPlayer1 = 0;
+    args.socketPlayer2 = 0;
+    args.GameId = 0;
+
     while (nbJoueur < maxJoueur){
         listen(socketServer, maxJoueur - nbJoueur);
         addrClient_lenght = sizeof(addrClient);
@@ -147,21 +186,28 @@ int main() {
         }
         printf("CONNEXION ACCEPTER DU CLIENT NUMERO :  %d\n", nbJoueur);
 
-        nbJoueur++;
+        char respons[6];
+        recv(socketClient[nbJoueur], respons, 5, 0);
+        respons[5] = '\0';
+        printf("RECU1 : %s\n", respons);
+
+        LoginArgs * args2 = malloc(sizeof(LoginArgs));
+        if (args2 == NULL) {
+            printf("ERROR ALLOCATING LOGINARGS !\n");
+            exit(EXIT_FAILURE);
+        }
+        args2->socketClient = socketClient[nbJoueur];
+        args2->nbJoueur = nbJoueur;
 
         pthread_t thread_id;
-        pthread_create(&thread_id, NULL, (void*)login, &socketClient[nbJoueur-1]);
-//        GameArgs args;
-//        args.socketPlayer1 = socketClient[nbJoueur-2];
-//        args.socketPlayer2 = socketClient[nbJoueur-1];
-//        args.GameId = GameId;
-//        pthread_t thread_id;
-//        pthread_create(&thread_id, NULL, startGame, &args);
-//        GameId++;
+        if (strcmp(respons, "LOGIN") == 0) {
+            pthread_create(&thread_id, NULL, (void*)login, args2);
+            //pthread_create(&thread_id, NULL, (void*)login, &args2);
+        }
+        nbJoueur++;
     }
 
-
-    //pthread_join(thread_id, NULL);
+    // TODO FREE LOGINARGS
 
     // Close Socket client
     for (int i = 0; i < nbJoueur; ++i) {
@@ -170,6 +216,5 @@ int main() {
     // Close Socket server
     close(socketServer);
 
-    pthread_exit(NULL);
     return 0;
 }
