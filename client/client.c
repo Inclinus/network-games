@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include "tictactoe/tictactoe.h"
 #include "../events/EventManager.h"
+#include "connect4/connect4.h"
 
 // action = 1 -> login
 // action = 2 -> register
@@ -88,6 +89,13 @@ int main() {
         printf("ERREUR DE CHOIX !\n");
         exit(1);
     }
+    // Clear event queues to be sure no events is stucked
+    clearQueues();
+    
+    // TODO implement choice of game here
+    //   Utilise le pollevent sdl (comme sur tictactoe) pour détecter un clic de souris
+    //   COmpare la position du clic avec tes boutons et lance en fonction tictactoe ou connect4
+    //   PS : pour l'instant connect4 est une fenêtre vide avec un texte connect 4
 
     main_menu(socketClient);
 
