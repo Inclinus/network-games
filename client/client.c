@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include "tictactoe/tictactoe.h"
 #include "../events/EventManager.h"
+#include "connect4/connect4.h"
 
 int main() {
     eventManagerInit();
@@ -57,6 +58,7 @@ int main() {
     //   PS : pour l'instant connect4 est une fenêtre vide avec un texte connect 4
 
     tictactoe(&socketClient);
+    //connect4(&socketClient);
 
     close(socketClient);
 

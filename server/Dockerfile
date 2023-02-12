@@ -1,5 +1,5 @@
 # Update and install cross-platform build dependencies
-FROM gcc:latest
+FROM debian
 
 # Maintainer info
 MAINTAINER Noam DE MASURE <demasure.noam@hotmail.fr>
