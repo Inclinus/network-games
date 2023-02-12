@@ -1,1 +1,1 @@
-gcc server.c tictactoe/tictactoe.c bdd/database.c $(mysql_config --libs) -pthread libs/bcrypt/bcrypt.c libs/bcrypt/crypt_blowfish/crypt_blowfish.c libs/bcrypt/crypt_blowfish/crypt_gensalt.c libs/bcrypt/crypt_blowfish/wrapper.c -o a.out $(mysql_config --cflags)
+gcc server.c tictactoe/tictactoe.c connect4/connect4.c bdd/database.c $(mysql_config --libs) -pthread libs/bcrypt/bcrypt.c libs/bcrypt/crypt_blowfish/crypt_blowfish.c libs/bcrypt/crypt_blowfish/crypt_gensalt.c libs/bcrypt/crypt_blowfish/wrapper.c -o a.out $(mysql_config --cflags)

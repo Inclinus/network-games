@@ -3,13 +3,8 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include "SDLUtils.c"
-
-#define MAX_WIDTH 720;
-#define MAX_HEIGHT 480;
-
-SDL_Renderer * renderer = NULL;
-SDL_Window * window = NULL;
+#include "../sdl-utils/SDLUtils.h"
+#include "sdl-client.h"
 
 SDL_bool program_launch = SDL_TRUE;
 
@@ -21,23 +16,14 @@ typedef struct{
     int actionType;
 } Button ;
 
-int main(){
+int MainMenu(SDL_Renderer * rendererMenu){
 
     initSDL();
     TTF_Init();
-    window = SDL_CreateWindow("MORPION",50,50,720,480,0);
-    renderer = SDL_CreateRenderer(window,-1,0);
 
-
-    changeColor(renderer,45,45,48);
-    createFilledRectangle(0,0,720,480,renderer);
-    updateRenderer(renderer);
-
-    Game();
-
-}
-
-void MainMenu(){
+    changeColor(rendererMenu,45,45,48);
+    createFilledRectangle(0,0,720,480,rendererMenu);
+    updateRenderer(rendererMenu);
 
     Button btn;
     btn.beginX = 180;
@@ -45,17 +31,17 @@ void MainMenu(){
     btn.endX = 540;
     btn.endY = 200;
 
-    SDL_RenderClear(renderer);
+    SDL_RenderClear(rendererMenu);
 
-    createTextZoneCentered(renderer, "Altino", 720/2,50, 255, 255, 255,48);
+    createTextZoneCentered(rendererMenu, "Altino", 720/2,50, 255, 255, 255,48);
 
     for(int i=0;i<4;i++){
 
-    changeColor(renderer,0,122,204);
-    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+    changeColor(rendererMenu,0,122,204);
+    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,rendererMenu);
 
-    changeColor(renderer,45,45,48);
-    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),renderer);
+    changeColor(rendererMenu,45,45,48);
+    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),rendererMenu);
 
     btn.beginY=btn.beginY + 60;
     btn.endY=btn.endY + 60;
@@ -70,16 +56,16 @@ void MainMenu(){
     {
     switch (i){
     case 0:
-        createTextZoneCentered(renderer, "Choisir une partie", btn.beginX+((btn.endX-btn.beginX)/2),btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, "Choisir une partie", btn.beginX+((btn.endX-btn.beginX)/2),btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
         break;
     case 1:
-        createTextZoneCentered(renderer, "Statistiques", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, "Statistiques", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
         break;
     case 2:
-        createTextZoneCentered(renderer, "Credit", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, "Credit", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
         break;
     case 3:
-        createTextZoneCentered(renderer, "Quitter",btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, "Quitter",btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
         break;
     }
 
@@ -90,17 +76,17 @@ void MainMenu(){
     btn.beginX = 570;
     btn.endX = 700;
 
-    changeColor(renderer,0,122,204);
-    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+    changeColor(rendererMenu,0,122,204);
+    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,rendererMenu);
 
-    changeColor(renderer,45,45,48);
-    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),renderer);
+    changeColor(rendererMenu,45,45,48);
+    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),rendererMenu);
         
 
-    createTextZoneCentered(renderer, "Options", btn.beginX+((btn.endX-btn.beginX)/2),btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
+    createTextZoneCentered(rendererMenu, "Options", btn.beginX+((btn.endX-btn.beginX)/2),btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
 
     
-    updateRenderer(renderer);
+    updateRenderer(rendererMenu);
 
     btn.beginX = 180;
     btn.beginY = 150;
@@ -124,17 +110,16 @@ void MainMenu(){
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>btn.beginX && x<btn.endX && y<btn.endY+60 && y<btn.beginY+60){
-                        Game();
+                        return 1; // Choisir le jeu 
                     }
                     if(x>btn.beginX && x<btn.endX && y<btn.endY+2*60 && y<btn.beginY+2*60){
-                        Credit();
+                        return 2;// stat
                     }
                     if(x>btn.beginX && x<btn.endX && y<btn.endY+3*60 && y<btn.beginY+3*60){
-                        Credit();
+                        continue;
                     }
                     if(x>btn.beginX && x<btn.endX && y<btn.endY+4*60 && y<btn.beginY+4*60){
-                        program_launch = SDL_FALSE;
-                        break;
+                        return 3;
                     }
                     else{
                         continue;
@@ -148,7 +133,7 @@ void MainMenu(){
 
 }
 
-void Credit(){
+void Credit(SDL_Renderer * rendererMenu){
 
     Button option;
     option.beginX = 20;
@@ -156,19 +141,19 @@ void Credit(){
     option.endX = 150;
     option.endY = 470;
 
-    SDL_RenderClear(renderer);
+    SDL_RenderClear(rendererMenu);
 
-    createTextZoneCentered(renderer, "Credit : ",720/2,50, 255, 255, 255,48);
+    createTextZoneCentered(rendererMenu, "Credit : ",720/2,50, 255, 255, 255,48);
 
-    changeColor(renderer,0,122,204);
-    createFilledRectangle(option.beginX,option.beginY,option.endX-option.beginX,option.endY-option.beginY,renderer);
+    changeColor(rendererMenu,0,122,204);
+    createFilledRectangle(option.beginX,option.beginY,option.endX-option.beginX,option.endY-option.beginY,rendererMenu);
 
-    changeColor(renderer,45,45,48);
-    createFilledRectangle(option.beginX+5,option.beginY+5,option.endX-(option.beginX+9),option.endY-(option.beginY+9),renderer);
+    changeColor(rendererMenu,45,45,48);
+    createFilledRectangle(option.beginX+5,option.beginY+5,option.endX-(option.beginX+9),option.endY-(option.beginY+9),rendererMenu);
 
-    createTextZoneCentered(renderer, "retour", option.beginX+((option.endX-option.beginX)/2) ,option.beginY+((option.endY-option.beginY)/2), 255, 255, 255,24);
+    createTextZoneCentered(rendererMenu, "retour", option.beginX+((option.endX-option.beginX)/2) ,option.beginY+((option.endY-option.beginY)/2), 255, 255, 255,24);
 
-    updateRenderer(renderer);
+    updateRenderer(rendererMenu);
 
     while(program_launch){
         SDL_Event event;
@@ -183,7 +168,7 @@ void Credit(){
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>option.beginX && x<option.endX && y<option.endY && y>option.beginY){
-                        MainMenu();
+                        MainMenu(rendererMenu);
                     }
                     else{
                         continue;
@@ -195,7 +180,7 @@ void Credit(){
     }
 }
 
-void Game(){
+int Game(SDL_Renderer * rendererMenu){
     Button option;
     option.beginX = 20;
     option.beginY = 430;
@@ -208,23 +193,23 @@ void Game(){
     btn.endX = 345;
     btn.endY = 410;
 
-    SDL_RenderClear(renderer);
+    SDL_RenderClear(rendererMenu);
 
-    createTextZoneCentered(renderer, "Quel jeu choisir", 720/2 ,50,255, 255, 255,48);
+    createTextZoneCentered(rendererMenu, "Quel jeu choisir", 720/2 ,50,255, 255, 255,48);
 
     for(int i=0;i<2;i++){
 
-    changeColor(renderer,0,122,204);
-    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+    changeColor(rendererMenu,0,122,204);
+    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,rendererMenu);
 
-    changeColor(renderer,45,45,48);
-    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),renderer);
+    changeColor(rendererMenu,45,45,48);
+    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),rendererMenu);
     
     if (i==0)
     {
-        createTextZoneCentered(renderer, "Morpion", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2),255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, "Morpion", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2),255, 255, 255,24);
     }else{
-        createTextZoneCentered(renderer, "Puissance 4", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, "Puissance 4", btn.beginX+((btn.endX-btn.beginX)/2) ,btn.beginY+((btn.endY-btn.beginY)/2), 255, 255, 255,24);
     }
 
     
@@ -232,17 +217,17 @@ void Game(){
     btn.endX=btn.endX + 370;
     }
 
-        changeColor(renderer,0,122,204);
-    createFilledRectangle(option.beginX,option.beginY,option.endX-option.beginX,option.endY-option.beginY,renderer);
+        changeColor(rendererMenu,0,122,204);
+    createFilledRectangle(option.beginX,option.beginY,option.endX-option.beginX,option.endY-option.beginY,rendererMenu);
 
-    changeColor(renderer,45,45,48);
-    createFilledRectangle(option.beginX+5,option.beginY+5,option.endX-(option.beginX+9),option.endY-(option.beginY+9),renderer);
+    changeColor(rendererMenu,45,45,48);
+    createFilledRectangle(option.beginX+5,option.beginY+5,option.endX-(option.beginX+9),option.endY-(option.beginY+9),rendererMenu);
     
-    createTextZoneCentered(renderer, "retour", option.beginX+((option.endX-option.beginX)/2) ,option.beginY+((option.endY-option.beginY)/2), 255, 255, 255,24);
+    createTextZoneCentered(rendererMenu, "retour", option.beginX+((option.endX-option.beginX)/2) ,option.beginY+((option.endY-option.beginY)/2), 255, 255, 255,24);
 
 
 
-    updateRenderer(renderer);
+    updateRenderer(rendererMenu);
 
     while(program_launch){
         SDL_Event event;    
@@ -259,13 +244,13 @@ void Game(){
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>5 && x<345 && y<410 && y>100){
-                        MainMenu();
+                        return 1; // Launch Morpion
                     }
                     if(x>365 && x<715 && y<410 && y>100){
-                        Credit();
+                        return 2; //launch Puissance4
                     }
                     if(x>20 && x<150 && y<470 && y>430){
-                        MainMenu();
+                        return 3; //menu
                     }
                     else{
                         continue;
@@ -278,6 +263,11 @@ void Game(){
     }
 
 }
+
+// MainMenu() -> Choix de jeu -> 1
+//            -> Statististiqies -> 2
+//            -> OSEF      
+//            -> Quit -> 3
 
 void Options(){
 

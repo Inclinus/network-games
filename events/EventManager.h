@@ -25,5 +25,8 @@ void eventManagerInit();
 // Send an event
 void sendEvent(NG_Event * event);
 
+// Clear queues
+void clearQueues();
+
 // Listen for NETWORK and SDL events
 NG_Event * listenAllEvents();
