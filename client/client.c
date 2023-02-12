@@ -57,8 +57,8 @@ int main() {
     //   COmpare la position du clic avec tes boutons et lance en fonction tictactoe ou connect4
     //   PS : pour l'instant connect4 est une fenêtre vide avec un texte connect 4
 
-    //tictactoe(&socketClient);
-    connect4(&socketClient);
+    tictactoe(&socketClient);
+    //connect4(&socketClient);
 
     close(socketClient);
 

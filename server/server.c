@@ -35,8 +35,8 @@ void * startGame(void *args){
     printf("NICKNAME 2 : %s\n", data2);
 
 
-    //tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
-    connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
+    tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
+    //connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
 
     return 0;
 }

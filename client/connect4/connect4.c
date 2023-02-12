@@ -44,6 +44,8 @@ char BLUE = 'B';
 // SDL Bool to do the game loop
 SDL_bool connect_launched = SDL_TRUE;
 
+SDL_bool connect4QuitForcedByPlayer = SDL_FALSE;
+
 char * actualDisplayedInfo;
 char * actualDisplayedFeedback;
 
@@ -155,7 +157,9 @@ int connect4(int * socketClient) {
         }
 
     }
-    sleep(10);
+    if(!connect4QuitForcedByPlayer){
+        sleep(10);
+    }
     quitSDL(rendererConnect4, windowConnect4);
     close(*socketClient);
     return 0;
@@ -168,6 +172,7 @@ void *sdlListener() {
             switch (event.type) {
                 case SDL_QUIT:
                     SDL_Log("SDL QUIT");
+                    connect4QuitForcedByPlayer = SDL_TRUE;
                     connect_launched = SDL_FALSE;
                     break;
                 case SDL_MOUSEBUTTONDOWN:

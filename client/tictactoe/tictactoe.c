@@ -23,16 +23,25 @@ int calculateColumnPos(Sint32 y);
 void * sdlListen();
 void *networkListen();
 
+void setDisplayInfo(char * displayInfo);
+void setDisplayFeedback(char * displayFeedback);
+
 SDL_Renderer *renderer = NULL;
 SDL_Window *window = NULL;
 
 SDL_bool program_launched = SDL_TRUE;
+
+SDL_bool quitForcedByPlayer = SDL_FALSE;
+
 int * clientSocket;
+
+char * tictactoeDisplayInfo;
+char * tictactoeDisplayFeedback;
 
 int tictactoe(int * socketClient) {
     clientSocket = socketClient;
     initSDL();
-    window = SDL_CreateWindow("MORPION", 50, 50, 600, 600, 0);
+    window = SDL_CreateWindow("MORPION", 50, 50, 600, 700, 0);
     renderer = SDL_CreateRenderer(window, -1, 0);
 
     pthread_t network_listener;
@@ -83,46 +92,57 @@ int tictactoe(int * socketClient) {
                             SDL_Log("Coup Possible ! \n");
                             send(*socketClient, &x, sizeof(x), 0);
                             send(*socketClient, &y, sizeof(y), 0);
-                            displayBoard(board);
                             yourTurn = SDL_FALSE;
                         } else {
                             SDL_Log("Coup Impossible ! \n");
+                            setDisplayFeedback("Coup Impossible !");
                         }
                     } else {
                         SDL_Log("Ce n'est pas votre tour ! \n");
+                        setDisplayFeedback("Ce n'est pas votre tour !");
                     }
                 }
             } else if (event->type == NETWORK) {
                 SDL_Log("TICTACTOE : NETWORK EVENT RECEIVED %s",event->instructions);
                 if (strcmp(event->instructions, "DISCONNECTED") == 0) {
                     SDL_Log("DECONNECTE DU SERVEUR");
+                    setDisplayInfo("DECONNECTE DU SERVEUR");
                     program_launched = SDL_FALSE;
                 } else if (strcmp("YOURTURN", event->instructions) == 0) {
                     SDL_Log("C'est à vous de jouer ! \n");
+                    setDisplayInfo("C'est à vous de jouer !");
                     yourTurn = SDL_TRUE;
                 } else if (strcmp("ENEMYTURN", event->instructions) == 0) {
                     SDL_Log("C'est au tour de l'adversaire ! \n");
+                    setDisplayInfo("C'est au tour de l'adversaire !");
                     yourTurn = SDL_FALSE;
                 } else if (regexec(&posRegex, event->instructions, 0, NULL, 0) == 0) {
                     int x, y;
                     sscanf(event->instructions, "%d-%d", &x, &y);
                     placeSymbol(board, 2, x, y);
-                    displayBoard(board);
                 } else if (strcmp("YOUWIN!!", event->instructions) == 0) {
                     SDL_Log("Vous avez gagné ! \n");
+                    setDisplayInfo("Vous avez gagné !");
                     program_launched = SDL_FALSE;
                 } else if (strcmp("YOULOSE!", event->instructions) == 0) {
                     SDL_Log("Vous avez perdu ! \n");
+                    setDisplayInfo("Vous avez perdu !");
                     program_launched = SDL_FALSE;
                 }  else if (strcmp("DRAWDRAW", event->instructions) == 0) {
                     SDL_Log("Personne n'a gagné ! \n");
+                    setDisplayInfo("Personne n'a gagné !");
                     program_launched = SDL_FALSE;
                 }
                 else {
                     fprintf(stderr,"WTF IS THAT NETWORK EVENT : %s",event->instructions);
                 }
             }
+            displayBoard(board);
+            setDisplayFeedback(" ");
         }
+    }
+    if(!quitForcedByPlayer){
+        sleep(5);
     }
     quitSDL(renderer, window);
     close(*socketClient);
@@ -132,30 +152,31 @@ int tictactoe(int * socketClient) {
 void *sdlListen() {
     while (program_launched) {
         SDL_Event event;
-        //SDL_Log("BOUCLE DE JEU");
 
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
                     SDL_Log("SDL QUIT");
+                    quitForcedByPlayer = SDL_TRUE;
                     program_launched = SDL_FALSE;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    ;
+                    SDL_Log("SDL BTN DOWN");
                     int x = calculateLinePos(event.button.x);
                     int y = calculateColumnPos(event.button.y);
-                    SDL_Log("SDL BTN DOWN");
-                    NG_Event *buttonDown = malloc(sizeof(NG_Event));
-                    if(buttonDown==NULL){
-                        SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWNEVENT");
+                    if(y!=-1) {
+                        NG_Event *buttonDown = malloc(sizeof(NG_Event));
+                        if (buttonDown == NULL) {
+                            SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWNEVENT");
+                        }
+                        buttonDown->type = SDL;
+                        buttonDown->instructions = malloc(sizeof(char) * 11);
+                        if (buttonDown->instructions == NULL) {
+                            SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWNEVENT INSTRUCTIONS");
+                        }
+                        sprintf(buttonDown->instructions, "%d-%d", x, y);
+                        sendEvent(buttonDown);
                     }
-                    buttonDown->type = SDL;
-                    buttonDown->instructions = malloc(sizeof(char)*11);
-                    if(buttonDown->instructions==NULL){
-                        SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWNEVENT INSTRUCTIONS");
-                    }
-                    sprintf(buttonDown->instructions, "%d-%d", x, y);
-                    sendEvent(buttonDown);
                     break;
                 default:
                     break;
@@ -230,6 +251,13 @@ void *networkListen() {
     }
 }
 
+void setDisplayInfo(char * displayInfo){
+    tictactoeDisplayInfo = displayInfo;
+}
+void setDisplayFeedback(char * displayFeedback){
+    tictactoeDisplayFeedback = displayFeedback;
+}
+
 
 SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py){
     if(board[px][py]!=1 && board[px][py]!=2 && px > -1 && px < 3 && py > -1 && py < 3) {
@@ -247,12 +275,20 @@ SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py){
 void displayBoard(int **board) {
     SDL_RenderClear(renderer);
     changeColor(renderer, 255, 255, 255);
-    createFilledRectangle(0, 0, 600, 600, renderer);
+    createFilledRectangle(0, 0, 600, 700, renderer);
     changeColor(renderer, 0, 0, 0);
-    createFilledRectangle(0, 195, 600, 10, renderer);
-    createFilledRectangle(0, 395, 600, 10, renderer);
-    createFilledRectangle(195, 0, 10, 600, renderer);
-    createFilledRectangle(395, 0, 10, 600, renderer);
+    createFilledRectangle(0, 295, 600, 10, renderer);
+    createFilledRectangle(0, 495, 600, 10, renderer);
+    createFilledRectangle(195, 100, 10, 600, renderer);
+    createFilledRectangle(395, 100, 10, 600, renderer);
+
+    if(tictactoeDisplayInfo!=NULL){
+        createTextZone(renderer,tictactoeDisplayInfo,200,10,0,150,0);
+    }
+    if(tictactoeDisplayFeedback!=NULL){
+        createTextZone(renderer,tictactoeDisplayFeedback,200,50,150,0,0);
+    }
+
     for (int i = 2; i >= 0; --i) {
         for (int y = 0; y < 3; ++y) {
             createSymbol(board[i][y],i,y);
@@ -272,7 +308,7 @@ void createSymbol(int symbol, int x, int y){
      * 97-502   290-502   502-502
      */
     int centerX = 97 + x * (502 - 97) / 2;
-    int centerY = 97 + y * (502 - 97) / 2;
+    int centerY = 197 + y * (502 - 97) / 2;
     if(symbol==1){
         changeColor(renderer,0,0,255);
         createCircle(renderer,centerX,centerY,30);
@@ -293,12 +329,14 @@ int calculateLinePos(Sint32 x){
 }
 
 int calculateColumnPos(Sint32 y){
-    if(y>405){
+    if(y>505){
         return 2;
-    } else if(y<195){
+    } else if(y<295 && y>100){
         return 0;
-    } else {
+    } else if(y>295){
         return 1;
+    } else {
+        return -1;
     }
 }
 
