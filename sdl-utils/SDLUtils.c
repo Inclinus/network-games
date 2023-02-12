@@ -95,3 +95,35 @@ void createCircle(SDL_Renderer * renderer, int x, int y, int radius)
         SDL_RenderDrawPoint(renderer, x1, y1);
     }
 }
+
+SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text, int posX, int posY, Uint8 red, Uint8 green, Uint8 blue, int size){
+
+    TTF_Font * font = TTF_OpenFont("../assets/Roboto-Regular.ttf", size);
+    if(font==NULL){
+        SDL_ExitWithError("FONT NULL");
+    }
+
+    SDL_Color color = {red, green, blue};
+
+    SDL_Surface * surfaceMessage;
+    if((surfaceMessage = TTF_RenderText_Solid(font,text, color))==NULL){
+        SDL_ExitWithError("SURFACE MESSAGE NULL");
+    }
+
+    SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    if(messageTexture==NULL){
+        SDL_ExitWithError("TEXTURE MESSAGE NULL");
+    }
+
+    SDL_Rect * messageRectangle = malloc(sizeof(SDL_Rect)); //create a rect
+    if(messageRectangle==NULL){
+        SDL_ExitWithError("MESSAGE RECTANGLE NULL");
+    }
+    messageRectangle->x = posX-(surfaceMessage->w/2);  //controls the rect's x coordinate
+    messageRectangle->y = posY-(surfaceMessage->h/2); // controls the rect's y coordinte
+    messageRectangle->w = surfaceMessage->w; // controls the width of the rect
+    messageRectangle->h = surfaceMessage->h; // controls the height of the rect
+
+    SDL_RenderCopy(renderer, messageTexture, NULL, messageRectangle);
+    return messageRectangle;
+}
