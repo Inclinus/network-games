@@ -14,20 +14,32 @@ void checkLine(char **game, char color, int line, int *win);
 void checkColumn(char **game, char color, int column, int *win);
 void checkDiagonals(char **game, char color, int line, int column, int *win);
 void checkWin(char **game, char color, int column, int line, int *win);
-int putOnColumn(char **game, int line, char color, int *win);
+
+SDL_bool tryPlay(char **game, int column, char color);
+
 void initializeGame(char **game);
 void displayGameBoard(char **game);
+
+void *sdlListener();
+void *networkListener();
+
+void debugConnectBoard(char **game);
+int calculateBoardColumnPos(Sint32 x);
+
+void setDisplayedInfo(char * text);
+void setDisplayedFeedback(char * text);
+
 
 int SIZE = 7;
 
 SDL_Window *windowConnect4 = NULL;
 SDL_Renderer *rendererConnect4 = NULL;
 
-int WINDOW_WIDTH = 0;
-int WINDOW_HEIGHT = 0;
+int WINDOW_WIDTH = 700;
+int WINDOW_HEIGHT = 800;
 
-char red = 'R';
-char blue = 'B';
+char RED = 'R';
+char BLUE = 'B';
 
 // SDL Bool to do the game loop
 SDL_bool connect_launched = SDL_TRUE;
@@ -35,80 +47,118 @@ SDL_bool connect_launched = SDL_TRUE;
 char * actualDisplayedInfo;
 char * actualDisplayedFeedback;
 
-
-/*
- * CONNECT 4
- * Envoyé par le serveur :
- * - YOURTURN ou WAITTURN
- * - COUP JOUE PAR L ADVERSAIRE
- * - YOUWIN!! ou YOULOSE!
- * Ecouté par le serveur :
- * - PLAY%d par le joueur qui joue
- *
- * Envoyé par le client :
- * - PLAY%d pour la position où il a joué
- * Ecouté par le client :
- * - YOURTURN ou WAITTURN
- * - COUP JOUE PAR L ADVERSAIRE
- * - YOUWIN!! ou YOULOSE!
- */
-
 int * connect4ClientSocket;
 
-SDL_bool tryPlay(char **game, int column, char color) {
-    if (column < 1 || column > 7) return SDL_FALSE;
-    int count = SIZE - 1;
-    while (game[column - 1][count] != '+') {
-        count--;
-    }
-    if (count < 0) return SDL_FALSE;
-    game[column - 1][count] = color;
-    SDL_Log("[DEBUG] You placed your token on column %d, he fell to the line %d.\n", column, count + 1);
-    return SDL_TRUE;
-}
+int connect4(int * socketClient) {
+    setDisplayedInfo("Bienvenue !");
+    connect4ClientSocket = socketClient;
+    initSDL();
+    windowConnect4 = SDL_CreateWindow("CONNECT 4", 50, 50, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+    rendererConnect4 = SDL_CreateRenderer(windowConnect4, -1, 0);
 
-void debugConnectBoard(char **game) {
-    SDL_Log("\n-----------------------------\n");
-    for (int i = 0; i < SIZE; i++) {
-        SDL_Log("| %d ", i + 1);
-    }
-    SDL_Log("|\n");
-    SDL_Log("-----------------------------\n");
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            SDL_Log("| %c ", game[j][i]);
-        }
-        SDL_Log("|\n");
-    }
-    SDL_Log("-----------------------------\n");
-}
+    pthread_t network_listener;
+    pthread_create(&network_listener, NULL, networkListener, NULL);
+    pthread_t sdl_listener;
+    pthread_create(&sdl_listener, NULL, sdlListener, NULL);
 
-int calculateBoardColumnPos(Sint32 x){
-    if(x>600){
-        return 7;
-    } else if(x>500){
-        return 6;
-    } else if(x>400){
-        return 5;
-    } else if(x>300){
-        return 4;
-    } else if(x>200){
-        return 3;
-    } else if(x>100){
-        return 2;
-    } else {
+    char **game = malloc(sizeof(char *) * SIZE);
+    if(game==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING CHAR ** GAME");
+    }
+
+    initializeGame(game);
+    SDL_Log("Voici le plateau de départ :\n");
+    displayGameBoard(game);
+
+    regex_t posRegex;
+    if (regcomp(&posRegex, "^POS[0-9]$", REG_EXTENDED | REG_NOSUB) != 0) {
+        fprintf(stderr, "Error: Could not compile regular expression\n");
+        SDL_Log("Error: Could not compile regular expression\n");
         return 1;
     }
-}
+    regex_t enemyPosRegex;
+    if (regcomp(&enemyPosRegex, "^ENEMY[0-9]$", REG_EXTENDED | REG_NOSUB) != 0) {
+        fprintf(stderr, "Error: Could not compile regular expression\n");
+        SDL_Log("Error: Could not compile regular expression\n");
+        return 1;
+    }
 
+    SDL_bool * yourTurn = malloc(sizeof(SDL_bool));
+    if(yourTurn==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING YOURTURN BOOL");
+    }
+    *yourTurn = SDL_FALSE;
 
+    while (connect_launched) {
+        NG_Event * event = NULL;
+        while ((event=listenAllEvents()) != NULL) {
+            SDL_Log("CONNECT4 : EVENT RECEIVED");
+            if (event->type == SDL) {
+                SDL_Log("CONNECT4 : SDL EVENT RECEIVED %s",event->instructions);
+                if (regexec(&posRegex, event->instructions, 0, NULL, 0) == 0) {
+                    if(*yourTurn){
+                        int column;
+                        sscanf(event->instructions, "POS%d", &column);
+                        if(tryPlay(game,column,BLUE)){
+                            debugConnectBoard(game);
+                            SDL_Log("Coup Possible ! \n");
+                            send(*connect4ClientSocket, &column, sizeof(column), 0);
+                            *yourTurn = SDL_FALSE;
+                        } else {
+                            SDL_Log("Coup Impossible ! \n");
+                        }
+                    } else {
+                        SDL_Log("Ce n'est pas votre tour ! \n");
+                        setDisplayedFeedback("Ce n'est pas votre tour !");
+                    }
+                } else {
+                    SDL_Log("SDL EVENT RECEIVED %s DOES NOT MATCH REGEX",event->instructions);
+                }
+            } else if (event->type == NETWORK) {
+                SDL_Log("CONNECT4 : NETWORK EVENT RECEIVED %s",event->instructions);
+                if (strcmp(event->instructions, "DISCONNECTED") == 0) {
+                    SDL_Log("DECONNECTE DU SERVEUR");
+                    setDisplayedInfo("DECONNECTE DU SERVEUR");
+                    connect_launched = SDL_FALSE;
+                } else if (strcmp("YOURTURN", event->instructions) == 0) {
+                    SDL_Log("C'est à vous de jouer ! \n");
+                    setDisplayedInfo("C'est à vous de jouer !");
+                    *yourTurn = SDL_TRUE;
+                } else if (strcmp("ENEMYTURN", event->instructions) == 0) {
+                    SDL_Log("C'est au tour de l'adversaire ! \n");
+                    setDisplayedInfo("C'est au tour de l'adversaire !");
+                    *yourTurn = SDL_FALSE;
+                } else if (regexec(&enemyPosRegex, event->instructions, 0, NULL, 0) == 0) {
+                    int y;
+                    sscanf(event->instructions, "ENEMY%d", &y);
+                    tryPlay(game,y,RED);
+                    debugConnectBoard(game);
+                    displayGameBoard(game);
+                } else if (strcmp("YOUWIN!!", event->instructions) == 0) {
+                    SDL_Log("Vous avez gagné ! \n");
+                    setDisplayedInfo("Vous avez gagné !");
+                    connect_launched = SDL_FALSE;
+                } else if (strcmp("YOULOSE!", event->instructions) == 0) {
+                    SDL_Log("Vous avez perdu ! \n");
+                    setDisplayedInfo("Vous avez perdu !");
+                    connect_launched = SDL_FALSE;
+                } else if (strcmp("EQUALITY", event->instructions) == 0) {
+                    SDL_Log("Personne n'a gagné ! \n");
+                    setDisplayedInfo("Personne n'a gagné !");
+                    connect_launched = SDL_FALSE;
+                } else {
+                    fprintf(stderr,"WTF IS THAT NETWORK EVENT : %s",event->instructions);
+                }
+            }
+            displayGameBoard(game);
+            setDisplayedFeedback(" ");
+        }
 
-void setDisplayedInfo(char * text){
-    actualDisplayedInfo = text;
-}
-
-void setDisplayedFeedback(char * text){
-    actualDisplayedFeedback = text;
+    }
+    sleep(10);
+    quitSDL(rendererConnect4, windowConnect4);
+    close(*socketClient);
+    return 0;
 }
 
 void *sdlListener() {
@@ -209,125 +259,68 @@ void *networkListener() {
 }
 
 
-int connect4(int * socketClient) {
-    setDisplayedInfo("Bienvenue !");
-    connect4ClientSocket = socketClient;
-    initSDL();
-    windowConnect4 = SDL_CreateWindow("CONNECT 4", 50, 50, 700, 800, 0);
-    rendererConnect4 = SDL_CreateRenderer(windowConnect4, -1, 0);
+void setDisplayedInfo(char * text){
+    actualDisplayedInfo = text;
+}
 
-    pthread_t network_listener;
-    pthread_create(&network_listener, NULL, networkListener, NULL);
-    pthread_t sdl_listener;
-    pthread_create(&sdl_listener, NULL, sdlListener, NULL);
+void setDisplayedFeedback(char * text){
+    actualDisplayedFeedback = text;
+}
 
-    char **game = malloc(sizeof(char *) * SIZE);
-    if(game==NULL){
-        SDL_ExitWithError("ERROR ALLOCATING CHAR ** GAME");
+
+SDL_bool tryPlay(char **game, int column, char color) {
+    if (column < 1 || column > 7) return SDL_FALSE;
+    int count = SIZE - 1;
+    while (game[column - 1][count] != '+') {
+        count--;
     }
+    if (count < 0) return SDL_FALSE;
+    game[column - 1][count] = color;
+    SDL_Log("[DEBUG] You placed your token on column %d, he fell to the line %d.\n", column, count + 1);
+    return SDL_TRUE;
+}
 
-    initializeGame(game);
-    SDL_Log("Voici le plateau de départ :\n");
-    displayGameBoard(game);
-
-    regex_t posRegex;
-    if (regcomp(&posRegex, "^POS[0-9]$", REG_EXTENDED | REG_NOSUB) != 0) {
-        fprintf(stderr, "Error: Could not compile regular expression\n");
-        SDL_Log("Error: Could not compile regular expression\n");
-        return 1;
+void debugConnectBoard(char **game) {
+    SDL_Log("\n-----------------------------\n");
+    for (int i = 0; i < SIZE; i++) {
+        SDL_Log("| %d ", i + 1);
     }
-    regex_t enemyPosRegex;
-    if (regcomp(&enemyPosRegex, "^ENEMY[0-9]$", REG_EXTENDED | REG_NOSUB) != 0) {
-        fprintf(stderr, "Error: Could not compile regular expression\n");
-        SDL_Log("Error: Could not compile regular expression\n");
-        return 1;
-    }
-
-    SDL_bool * yourTurn = malloc(sizeof(SDL_bool));
-    if(yourTurn==NULL){
-        SDL_ExitWithError("ERROR ALLOCATING YOURTURN BOOL");
-    }
-    *yourTurn = SDL_FALSE;
-
-    while (connect_launched) {
-        NG_Event * event = NULL;
-        while ((event=listenAllEvents()) != NULL) {
-            SDL_Log("CONNECT4 : EVENT RECEIVED");
-            if (event->type == SDL) {
-                SDL_Log("CONNECT4 : SDL EVENT RECEIVED %s",event->instructions);
-                if (regexec(&posRegex, event->instructions, 0, NULL, 0) == 0) {
-                    if(*yourTurn){
-                        int column;
-                        sscanf(event->instructions, "POS%d", &column);
-                        if(tryPlay(game,column,'B')){
-                            debugConnectBoard(game);
-                            SDL_Log("Coup Possible ! \n");
-                            send(*connect4ClientSocket, &column, sizeof(column), 0);
-                            *yourTurn = SDL_FALSE;
-                        } else {
-                            SDL_Log("Coup Impossible ! \n");
-                        }
-                    } else {
-                        SDL_Log("Ce n'est pas votre tour ! \n");
-                        setDisplayedFeedback("Ce n'est pas votre tour !");
-                    }
-                } else {
-                    SDL_Log("SDL EVENT RECEIVED %s DOES NOT MATCH REGEX",event->instructions);
-                }
-            } else if (event->type == NETWORK) {
-                SDL_Log("CONNECT4 : NETWORK EVENT RECEIVED %s",event->instructions);
-                if (strcmp(event->instructions, "DISCONNECTED") == 0) {
-                    SDL_Log("DECONNECTE DU SERVEUR");
-                    setDisplayedInfo("DECONNECTE DU SERVEUR");
-                    connect_launched = SDL_FALSE;
-                } else if (strcmp("YOURTURN", event->instructions) == 0) {
-                    SDL_Log("C'est à vous de jouer ! \n");
-                    setDisplayedInfo("C'est à vous de jouer !");
-                    *yourTurn = SDL_TRUE;
-                } else if (strcmp("ENEMYTURN", event->instructions) == 0) {
-                    SDL_Log("C'est au tour de l'adversaire ! \n");
-                    setDisplayedInfo("C'est au tour de l'adversaire !");
-                    *yourTurn = SDL_FALSE;
-                } else if (regexec(&enemyPosRegex, event->instructions, 0, NULL, 0) == 0) {
-                    int y;
-                    sscanf(event->instructions, "ENEMY%d", &y);
-                    tryPlay(game,y,'R');
-                    debugConnectBoard(game);
-                    displayGameBoard(game);
-                } else if (strcmp("YOUWIN!!", event->instructions) == 0) {
-                    SDL_Log("Vous avez gagné ! \n");
-                    setDisplayedInfo("Vous avez gagné !");
-                    connect_launched = SDL_FALSE;
-                } else if (strcmp("YOULOSE!", event->instructions) == 0) {
-                    SDL_Log("Vous avez perdu ! \n");
-                    setDisplayedInfo("Vous avez perdu !");
-                    connect_launched = SDL_FALSE;
-                } else if (strcmp("EQUALITY", event->instructions) == 0) {
-                    SDL_Log("Personne n'a gagné ! \n");
-                    setDisplayedInfo("Personne n'a gagné !");
-                    connect_launched = SDL_FALSE;
-                } else {
-                    fprintf(stderr,"WTF IS THAT NETWORK EVENT : %s",event->instructions);
-                }
-            }
-            displayGameBoard(game);
-            setDisplayedFeedback(" ");
+    SDL_Log("|\n");
+    SDL_Log("-----------------------------\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            SDL_Log("| %c ", game[j][i]);
         }
-
+        SDL_Log("|\n");
     }
-    sleep(5);
-    quitSDL(rendererConnect4, windowConnect4);
-    close(*socketClient);
-    return 0;
+    SDL_Log("-----------------------------\n");
+}
+
+int calculateBoardColumnPos(Sint32 x){
+    if(x>600){
+        return 7;
+    } else if(x>500){
+        return 6;
+    } else if(x>400){
+        return 5;
+    } else if(x>300){
+        return 4;
+    } else if(x>200){
+        return 3;
+    } else if(x>100){
+        return 2;
+    } else {
+        return 1;
+    }
 }
 
 void createSymbolCircle(char symbol, int x, int y){
     int centerX = 50 + x * 100;
     int centerY = 150 + y * 100;
-    if(symbol=='B'){
+    if(symbol==BLUE){
         changeColor(rendererConnect4,0,0,255);
         createCircle(rendererConnect4,centerX,centerY,30);
-    } else if(symbol=='R'){
+    } else if(symbol==RED){
         changeColor(rendererConnect4,255,0,0);
         createCircle(rendererConnect4,centerX,centerY,30);
     }

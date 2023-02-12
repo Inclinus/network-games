@@ -161,7 +161,7 @@ char getCharOf(int player){
 }
 
 void playerTurn(int playerID, int socketPlayer1, int socketPlayer2, char **game, int * win) {
-    printf("C'est au tour du WTF joueur %d !\n",playerID);
+    printf("C'est au tour du joueur %d !\n",playerID);
     send(socketPlayer1, "YOURTURN", 8, 0);
     send(socketPlayer2, "WAITTURN", 8, 0);
     int column;
@@ -178,7 +178,6 @@ void playerTurn(int playerID, int socketPlayer1, int socketPlayer2, char **game,
 
 
 int connect4Server(int socketPlayer1, int socketPlayer2) {
-
     printf("PARTIE COMMENCE !\n");
 
     char **game = malloc(sizeof(char *) * SIZE);

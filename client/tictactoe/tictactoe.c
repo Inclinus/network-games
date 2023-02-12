@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
 #include <SDL2/SDL_render.h>
@@ -13,123 +11,23 @@
 #include "../../sdl-utils/SDLUtils.h"
 #include "../../events/EventManager.h"
 
-
 void displayBoard(int **board);
+
+SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py);
 void placeSymbol(int ** board, int symbol, int px, int py);
 void createSymbol(int symbol, int x, int y);
-void yourTurn(SDL_bool * yourTurn,const int * socketClient);
+
+int calculateLinePos(Sint32 x);
+int calculateColumnPos(Sint32 y);
+
+void * sdlListen();
+void *networkListen();
 
 SDL_Renderer *renderer = NULL;
 SDL_Window *window = NULL;
 
 SDL_bool program_launched = SDL_TRUE;
 int * clientSocket;
-
-int calculateLinePos(Sint32 x){
-    if(x>405){
-        return 2;
-    } else if(x<195){
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-int calculateColumnPos(Sint32 y){
-    if(y>405){
-        return 2;
-    } else if(y<195){
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-void *sdlListen() {
-    while (program_launched) {
-        SDL_Event event;
-        //SDL_Log("BOUCLE DE JEU");
-
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    SDL_Log("SDL QUIT");
-                    program_launched = SDL_FALSE;
-                    break;
-                case SDL_MOUSEBUTTONDOWN:
-                    ;
-                    int x = calculateLinePos(event.button.x);
-                    int y = calculateColumnPos(event.button.y);
-                    SDL_Log("SDL BTN DOWN");
-                    NG_Event *buttonDown = malloc(sizeof(NG_Event));
-                    buttonDown->type = SDL;
-                    buttonDown->instructions = malloc(sizeof(char)*11);
-                    sprintf(buttonDown->instructions, "%d-%d", x, y);
-                    sendEvent(buttonDown);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-}
-
-
-
-void *networkListen() {
-    NG_Event *disconnectEvent = malloc(sizeof(NG_Event));
-    disconnectEvent->type = NETWORK;
-    disconnectEvent->instructions = malloc(sizeof(char)*12);
-    disconnectEvent->instructions = "DISCONNECTED";
-
-    int player = 1;
-    while (program_launched) {
-        char data[9];
-        memset(data, '\0', sizeof(data));
-        if (recv(*clientSocket, data, 8, 0) <= 0) {
-            sendEvent(disconnectEvent);
-            break;
-        } else {
-            if (strcmp("WAITTURN", data) == 0) {
-                NG_Event *enemyTurnEvent = malloc(sizeof(NG_Event));
-                enemyTurnEvent->type = NETWORK;
-                disconnectEvent->instructions = malloc(sizeof(char)*10);
-                enemyTurnEvent->instructions = "ENEMYTURN";
-                sendEvent(enemyTurnEvent);
-                int px;
-                int py;
-                recv(*clientSocket, &px, sizeof(px), 0);
-                recv(*clientSocket, &py, sizeof(py), 0);
-                NG_Event *enemyPosEvent = malloc(sizeof(NG_Event)); // enemyPosEvent = Oxeaf & *enemyPosEvent = NG_EVENT{} &enemyPosEvent = 0xfk
-                enemyPosEvent->type = NETWORK;
-                enemyPosEvent->instructions = malloc(sizeof(char)*4);
-                sprintf(enemyPosEvent->instructions, "%d-%d", px, py);
-                sendEvent(enemyPosEvent);
-            } else {
-                NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
-                receivedDataEvent->type = NETWORK;
-                unsigned long len = strlen(data);
-                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
-                receivedDataEvent->instructions = malloc(sizeof(char)*len);
-                strcpy(receivedDataEvent->instructions,data);
-                sendEvent(receivedDataEvent);
-            }
-        }
-    }
-}
-
-SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py){
-    if(board[px][py]!=1 && board[px][py]!=2 && px > -1 && px < 3 && py > -1 && py < 3) {
-        if(isEnemy){
-            placeSymbol(board,2,px,py);
-        } else {
-            placeSymbol(board,1,px,py);
-        }
-        return SDL_TRUE;
-    } else {
-        return SDL_FALSE;
-    }
-}
 
 int tictactoe(int * socketClient) {
     clientSocket = socketClient;
@@ -145,11 +43,16 @@ int tictactoe(int * socketClient) {
     int **board;
     int *row;
     board = malloc(sizeof(int *) * 3);
+    if(board==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING BOARD");
+    }
 
     for (int i = 0; i < 3; ++i) {
         row = malloc(sizeof(int) * 3);
+        if(row==NULL){
+            SDL_ExitWithError("ERROR ALLOCATING ROW");
+        }
         board[i] = row;
-
     }
     for (int i = 0; i < 3; ++i) {
         for (int y = 0; y < 3; ++y) {
@@ -226,6 +129,121 @@ int tictactoe(int * socketClient) {
     return 0;
 }
 
+void *sdlListen() {
+    while (program_launched) {
+        SDL_Event event;
+        //SDL_Log("BOUCLE DE JEU");
+
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    SDL_Log("SDL QUIT");
+                    program_launched = SDL_FALSE;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    ;
+                    int x = calculateLinePos(event.button.x);
+                    int y = calculateColumnPos(event.button.y);
+                    SDL_Log("SDL BTN DOWN");
+                    NG_Event *buttonDown = malloc(sizeof(NG_Event));
+                    if(buttonDown==NULL){
+                        SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWNEVENT");
+                    }
+                    buttonDown->type = SDL;
+                    buttonDown->instructions = malloc(sizeof(char)*11);
+                    if(buttonDown->instructions==NULL){
+                        SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWNEVENT INSTRUCTIONS");
+                    }
+                    sprintf(buttonDown->instructions, "%d-%d", x, y);
+                    sendEvent(buttonDown);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+
+void *networkListen() {
+    NG_Event *disconnectEvent = malloc(sizeof(NG_Event));
+    if(disconnectEvent==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING DISCONNECTEVENT");
+    }
+    disconnectEvent->type = NETWORK;
+    disconnectEvent->instructions = malloc(sizeof(char)*12);
+    if(disconnectEvent->instructions==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING DISCONNECTEVENT INSTRUCTIONS");
+    }
+    disconnectEvent->instructions = "DISCONNECTED";
+
+    while (program_launched) {
+        char data[9];
+        memset(data, '\0', sizeof(data));
+        if (recv(*clientSocket, data, 8, 0) <= 0) {
+            sendEvent(disconnectEvent);
+            break;
+        } else {
+            if (strcmp("WAITTURN", data) == 0) {
+                NG_Event *enemyTurnEvent = malloc(sizeof(NG_Event));
+                if(enemyTurnEvent==NULL){
+                    SDL_ExitWithError("ERROR ALLOCATING ENEMYTURNEVENT");
+                }
+                enemyTurnEvent->type = NETWORK;
+                enemyTurnEvent->instructions = malloc(sizeof(char)*10);
+                if(enemyTurnEvent->instructions==NULL){
+                    SDL_ExitWithError("ERROR ALLOCATING ENEMYTURNEVENT INSTRUCTIONS");
+                }
+                enemyTurnEvent->instructions = "ENEMYTURN";
+                sendEvent(enemyTurnEvent);
+                int px;
+                int py;
+                recv(*clientSocket, &px, sizeof(px), 0);
+                recv(*clientSocket, &py, sizeof(py), 0);
+                NG_Event *enemyPosEvent = malloc(sizeof(NG_Event)); // enemyPosEvent = Oxeaf & *enemyPosEvent = NG_EVENT{} &enemyPosEvent = 0xfk
+                if(enemyPosEvent==NULL){
+                    SDL_ExitWithError("ERROR ALLOCATING ENEMYPOSEVENT");
+                }
+                enemyPosEvent->type = NETWORK;
+                enemyPosEvent->instructions = malloc(sizeof(char)*4);
+                if(enemyPosEvent->instructions==NULL){
+                    SDL_ExitWithError("ERROR ALLOCATING ENEMYPOSEVENT INSTRUCTIONS");
+                }
+                sprintf(enemyPosEvent->instructions, "%d-%d", px, py);
+                sendEvent(enemyPosEvent);
+            } else {
+                NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
+                if(receivedDataEvent==NULL){
+                    SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT");
+                }
+                receivedDataEvent->type = NETWORK;
+                unsigned long len = strlen(data);
+                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
+                receivedDataEvent->instructions = malloc(sizeof(char)*len);
+                if(receivedDataEvent->instructions==NULL){
+                    SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT INSTRUCTIONS");
+                }
+                strcpy(receivedDataEvent->instructions,data);
+                sendEvent(receivedDataEvent);
+            }
+        }
+    }
+}
+
+
+SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py){
+    if(board[px][py]!=1 && board[px][py]!=2 && px > -1 && px < 3 && py > -1 && py < 3) {
+        if(isEnemy){
+            placeSymbol(board,2,px,py);
+        } else {
+            placeSymbol(board,1,px,py);
+        }
+        return SDL_TRUE;
+    } else {
+        return SDL_FALSE;
+    }
+}
+
 void displayBoard(int **board) {
     SDL_RenderClear(renderer);
     changeColor(renderer, 255, 255, 255);
@@ -261,6 +279,26 @@ void createSymbol(int symbol, int x, int y){
     } else if(symbol==2){
         changeColor(renderer,255,0,0);
         SDL_RenderDrawLine(renderer,centerX-40,centerY-40,centerX+40,centerY+40);
+    }
+}
+
+int calculateLinePos(Sint32 x){
+    if(x>405){
+        return 2;
+    } else if(x<195){
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+int calculateColumnPos(Sint32 y){
+    if(y>405){
+        return 2;
+    } else if(y<195){
+        return 0;
+    } else {
+        return 1;
     }
 }
 
