@@ -6,6 +6,10 @@
 #include "../sdl-utils/SDLUtils.h"
 #include "sdl-client.h"
 
+#define WIDTH 720
+#define HEIGHT 480
+
+
 SDL_bool program_launch = SDL_TRUE;
 
 typedef struct{
@@ -22,7 +26,7 @@ int MainMenu(SDL_Renderer * rendererMenu){
     TTF_Init();
 
     changeColor(rendererMenu,45,45,48);
-    createFilledRectangle(0,0,720,480,rendererMenu);
+    createFilledRectangle(0,0,WIDTH,HEIGHT,rendererMenu);
     updateRenderer(rendererMenu);
 
     Button btn;
@@ -33,7 +37,7 @@ int MainMenu(SDL_Renderer * rendererMenu){
 
     SDL_RenderClear(rendererMenu);
 
-    createTextZoneCentered(rendererMenu, "Altino", 720/2,50, 255, 255, 255,48);
+    createTextZoneCentered(rendererMenu, "Altino", WIDTH/2,50, 255, 255, 255,48);
 
     for(int i=0;i<4;i++){
 
@@ -116,7 +120,7 @@ int MainMenu(SDL_Renderer * rendererMenu){
                         return 2;// stat
                     }
                     if(x>btn.beginX && x<btn.endX && y<btn.endY+3*60 && y<btn.beginY+3*60){
-                        continue;
+                        Credit(rendererMenu);
                     }
                     if(x>btn.beginX && x<btn.endX && y<btn.endY+4*60 && y<btn.beginY+4*60){
                         return 3;
@@ -143,7 +147,7 @@ void Credit(SDL_Renderer * rendererMenu){
 
     SDL_RenderClear(rendererMenu);
 
-    createTextZoneCentered(rendererMenu, "Credit : ",720/2,50, 255, 255, 255,48);
+    createTextZoneCentered(rendererMenu, "Credit : ",WIDTH/2,50, 255, 255, 255,48);
 
     changeColor(rendererMenu,0,122,204);
     createFilledRectangle(option.beginX,option.beginY,option.endX-option.beginX,option.endY-option.beginY,rendererMenu);
@@ -231,7 +235,6 @@ int Game(SDL_Renderer * rendererMenu){
 
     while(program_launch){
         SDL_Event event;    
-        int swap = 0;
 
         while(SDL_PollEvent(&event)){
             switch(event.type){
@@ -269,6 +272,66 @@ int Game(SDL_Renderer * rendererMenu){
 //            -> OSEF      
 //            -> Quit -> 3
 
-void Options(){
+void Options(SDL_Renderer * rendererMenu){
+    Button option;
+    option.beginX = 20;
+    option.beginY = 430;
+    option.endX = 150;
+    option.endY = 470;
 
+    Button input;
+    input.beginX = WIDTH/4;
+    input.beginY = HEIGHT/2-30;
+
+    createTextZoneCentered(rendererMenu, "ip du serveur :", input.beginX ,input.beginY, 255, 255, 255,24);
+    createTextZoneCentered(rendererMenu, "port du serveur :", input.beginX,input.beginY+1*60, 255, 255, 255,24);
+
+    SDL_RenderClear(rendererMenu);
+
+    changeColor(rendererMenu,0,122,204);
+    createFilledRectangle(option.beginX,option.beginY,option.endX-option.beginX,option.endY-option.beginY,rendererMenu);
+
+    changeColor(rendererMenu,45,45,48);
+    createFilledRectangle(option.beginX+5,option.beginY+5,option.endX-(option.beginX+9),option.endY-(option.beginY+9),rendererMenu);
+    
+    createTextZoneCentered(rendererMenu, "retour", option.beginX+((option.endX-option.beginX)/2) ,option.beginY+((option.endY-option.beginY)/2), 255, 255, 255,24);    
+
+
+    while(program_launch){
+        SDL_Event event;    
+        while(SDL_PollEvent(&event)){
+            switch(event.type){
+                case SDL_QUIT:
+                    program_launch = SDL_FALSE;
+                    break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                    ;
+                    int x = event.button.x;
+                    int y = event.button.y;
+                    if(x>20 && x<150 && y<470 && y>430){
+                        MainMenu(rendererMenu);
+                    }
+                    else{
+                        continue;
+                    }
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+int authentLoginOrRegister(SDL_Renderer * rendererMain){
+
+    Button btn;
+    btn.beginX = 5;
+    btn.beginY = 100;
+    btn.endX = 345;
+    btn.endY = 410;
+
+    createTextZoneCentered(rendererMenu, "Altino", WIDTH/2,50, 255, 255, 255,48);
+    
+        
+    
 }
