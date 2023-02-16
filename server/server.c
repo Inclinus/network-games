@@ -38,11 +38,23 @@ void * startGame(void *args){
     }
     printf("Le joueur 2 est le socket %d\n",((GameArgs *)args)->socketPlayer2);
 
-    send(myargs->socketPlayer1, "STARTGAME", 9, 0);
-    send(myargs->socketPlayer2, "STARTGAME", 9, 0);
+    send(myargs->socketPlayer1, "STARTLOBBYH", 11, 0);
+    send(myargs->socketPlayer2, "STARTLOBBYJ", 11, 0);
 
-    tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
-    //connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
+    char choix[11];
+    recv(myargs->socketPlayer1, choix, sizeof(choix), 0);
+    choix[10] = '\0';
+    printf("RECU : %s\n", choix);
+
+    if (strcmp(choix, "TICTACTOE") == 0) {
+        send(myargs->socketPlayer1, "TICTACTOE", 9, 0);
+        send(myargs->socketPlayer2, "TICTACTOE", 9, 0);
+        tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
+    } else if (strcmp(choix, "NCONNECT4") == 0) {
+        send(myargs->socketPlayer1, "NCONNECT4", 9, 0);
+        send(myargs->socketPlayer2, "NCONNECT4", 9, 0);
+        connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
+    }
 
     return 0;
 }

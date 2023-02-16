@@ -41,18 +41,6 @@ int login(int * socketClient, int action){
     }
 }
 
-int main_menu(int socketClient){
-    int action;
-    printf("1 - jouer \n 2 - quitter \n");
-    scanf("%d", &action);
-    if (action == 1) {
-
-    } else if (action == 2) {
-
-    }
-    return 1;
-}
-
 int main() {
     eventManagerInit();
     int socketClient = socket(AF_INET, SOCK_STREAM, 0);
@@ -61,8 +49,8 @@ int main() {
     // projetc.neo-serv.fr -> 92.222.131.57
 
     struct hostent *ipserveur;
-    //ipserveur = gethostbyname("localhost");
-    ipserveur = gethostbyname("projetc.neo-serv.fr");
+    ipserveur = gethostbyname("localhost");
+    //ipserveur = gethostbyname("projetc.neo-serv.fr");
 
     if (ipserveur == NULL) {
         printf("ERREUR, l'host n'a pas été trouver\n");
@@ -114,22 +102,77 @@ int main() {
     
     while (!flag)
     {
-        send(socketClient, "QUEUE", 5, 0);
         outputMenu = MainMenu(rendererMenu);
         switch (outputMenu)
         {
         case 1:
-            outputMenu = Game(rendererMenu);
-            switch (outputMenu)
-            {
-            case 1:
-                //launch Morpion
-                break;
-            case 2:
-                //launch Puissance4
-                break;
-            case 3:
-                break;
+            printf("CASE 1 \n");
+            send(socketClient, "QUEUE", 5, 0);
+            char buffer[12];
+            recv(socketClient, buffer, sizeof(buffer), 0);
+            buffer[11] = '\0';
+            printf("RECU : %s", buffer);
+
+            if(strcmp(buffer, "STARTLOBBYH") == 0){
+                printf("Le lobby a été crée et tu es l'hote !\n");
+                outputMenu = Game(rendererMenu);
+                switch (outputMenu)
+                {
+                    case 1:
+                        if(strcmp(buffer, "STARTLOBBYH") == 0){
+                            send(socketClient, "TICTACTOE", 9, 0);
+                        }
+                        char bufferstart1[10];
+                        recv(socketClient, bufferstart1, sizeof(bufferstart1), 0);
+                        bufferstart1[9] = '\0';
+                        if(strcmp(bufferstart1, "TICTACTOE") == 0){
+                            printf("Le jeu va commencer !\n");
+                            tictactoe(&socketClient);
+                        } else if (strcmp(bufferstart1, "NCONNECT4") == 0){
+                            printf("Le jeu va commencer !\n");
+                            connect4(&socketClient);
+                        } else {
+                            printf("ERREUR DE RECEPTION !\n");
+                        }
+                        //launch Morpion
+                        break;
+                    case 2:
+                        if(strcmp(buffer, "STARTLOBBYH") == 0){
+                            send(socketClient, "NCONNECT4", 9, 0);
+                        }
+                        char bufferstart2[10];
+                        recv(socketClient, bufferstart2, sizeof(bufferstart2), 0);
+                        bufferstart2[9] = '\0';
+                        if(strcmp(bufferstart2, "TICTACTOE") == 0){
+                            printf("Le jeu va commencer !\n");
+                            tictactoe(&socketClient);
+                        } else if (strcmp(bufferstart2, "NCONNECT4") == 0){
+                            printf("Le jeu va commencer !\n");
+                            connect4(&socketClient);
+                        } else {
+                            printf("ERREUR DE RECEPTION !\n");
+                        }
+                        //launch Puissance4
+                        break;
+                    case 3:
+                        break;
+                }
+            } else if (strcmp(buffer, "STARTLOBBYJ") == 0){
+                printf("Le lobby a été crée et tu es un joueur !\n");
+                char bufferstart[10];
+                recv(socketClient, bufferstart, sizeof(bufferstart), 0);
+                bufferstart[9] = '\0';
+                if(strcmp(bufferstart, "TICTACTOE") == 0){
+                    printf("Le jeu va commencer !\n");
+                    tictactoe(&socketClient);
+                } else if (strcmp(bufferstart, "NCONNECT4") == 0){
+                    printf("Le jeu va commencer !\n");
+                    connect4(&socketClient);
+                } else {
+                    printf("ERREUR DE RECEPTION !\n");
+                }
+            } else {
+                printf("ERREUR DE RECEPTION !\n");
             }
             break;
         case 2:
@@ -144,10 +187,10 @@ int main() {
         }
     }
 
-    char buffer[25];
-    recv(socketClient, buffer, sizeof(buffer), 0);
+    //char buffer[25];
+    //recv(socketClient, buffer, sizeof(buffer), 0);
 
-    tictactoe(&socketClient);
+    //tictactoe(&socketClient);
 
     close(socketClient);
 
