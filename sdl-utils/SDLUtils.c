@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "SDLUtils.h"
+#include "../client/sdl-client.h"
 #include <math.h>
 
 void changeColor(SDL_Renderer * renderer,int red, int green, int blue){
@@ -95,7 +96,7 @@ void createCircle(SDL_Renderer * renderer, int x, int y, int radius)
     }
 }
 
-SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text, int posX, int posY, Uint8 red, Uint8 green, Uint8 blue, int size){
+SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text,int posX, int posY, Uint8 red, Uint8 green, Uint8 blue, int size){
 
     TTF_Font * font = TTF_OpenFont("/home/kyato/CLionProjects/network-games/assets/Roboto-Regular.ttf", size);
     if(font==NULL){
@@ -125,4 +126,19 @@ SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text, in
 
     SDL_RenderCopy(renderer, messageTexture, NULL, messageRectangle);
     return messageRectangle;
+}
+
+void createButton(SDL_Renderer * renderer, Button btn,const char * text){
+
+    int posX = btn.beginX+((btn.endX-btn.beginX)/2);
+    int posY = btn.beginY+((btn.endY-btn.beginY)/2);
+
+    changeColor(renderer,0,122,204);
+    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+
+    changeColor(renderer,45,45,48);
+    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),renderer);
+
+
+    createTextZoneCentered(renderer, text,posX,posY, 255, 255, 255,24);
 }

@@ -206,17 +206,7 @@ void *networkListen() {
             break;
         } else {
             if (strcmp("WAITTURN", data) == 0) {
-                NG_Event *enemyTurnEvent = malloc(sizeof(NG_Event));
-                if(enemyTurnEvent==NULL){
-                    SDL_ExitWithError("ERROR ALLOCATING ENEMYTURNEVENT");
-                }
-                enemyTurnEvent->type = NETWORK;
-                enemyTurnEvent->instructions = malloc(sizeof(char)*10);
-                if(enemyTurnEvent->instructions==NULL){
-                    SDL_ExitWithError("ERROR ALLOCATING ENEMYTURNEVENT INSTRUCTIONS");
-                }
-                enemyTurnEvent->instructions = "ENEMYTURN";
-                sendEvent(enemyTurnEvent);
+                sendEvent(createEvent(NETWORK,"ENEMYTURN"));
                 int px;
                 int py;
                 recv(*clientSocket, &px, sizeof(px), 0);

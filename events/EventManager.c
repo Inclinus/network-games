@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <SDL2/SDL_log.h>
 #include "EventManager.h"
+#include "../sdl-utils/SDLUtils.h"
 
 static void initQueue(NG_Queue ** queue);
 
@@ -94,5 +95,15 @@ NG_Event * listenAllEvents(){
         return pickUpEvent(sdlQueue);
     }
     return NULL;
+}
+
+NG_Event * createEvent(NG_EventType type, char * instructions){
+    NG_Event * event = malloc(sizeof(NG_Event));
+    if(event==NULL){
+       SDL_ExitWithError("Error while creating event");
+    }
+    event->type = type;
+    event->instructions = instructions;
+    return event;
 }
 

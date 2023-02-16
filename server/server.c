@@ -128,8 +128,12 @@ void * login(void * loginargs){;
             pthread_t threadGame;
             pthread_create(&threadGame, NULL, startGame, (void *)&args);
         } else if (myloginargs->nbJoueur%2 == 1) {
-            printf("JOIN DE LOBBY !\n");
-            args.socketPlayer2 = socketClient;
+            if (args.socketPlayer1 == 0) {
+                printf("PAS DE LOBBY !\n");
+            } else {
+                printf("JOIN DE LOBBY !\n");
+                args.socketPlayer2 = socketClient;
+            }
         }
     } else if (strcmp(choix, "STATS") == 0) {
         // TODO STATS

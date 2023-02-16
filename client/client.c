@@ -12,6 +12,12 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL.h>
 #include "sdl-client.h"
+#include "../sdl-utils/SDLUtils.h"
+#include <SDL2/SDL_ttf.h>
+#include <pthread.h>
+
+int flag = 0;
+int * clientSocket;
 
 // action = 1 -> login
 // action = 2 -> register
@@ -67,6 +73,7 @@ int main() {
         exit(1);
     }
     printf("[DEBUG] CONNECTER !\n");
+    clientSocket = &socketClient;
 
     send(socketClient, "LOGIN", 5, 0);
 
@@ -90,15 +97,12 @@ int main() {
     //   PS : pour l'instant connect4 est une fenêtre vide avec un texte connect 4
 
     printf("[DEBUG] FIN DE L'AUTHENTIFICATION !\n");
-    
-    SDL_Renderer * rendererMenu = NULL;
-    SDL_Window * windowMenu = NULL;
 
-    windowMenu = SDL_CreateWindow("MORPION",50,50,720,480,0);
-    rendererMenu = SDL_CreateRenderer(windowMenu,-1,0);
-
-    int flag = 0;
     int outputMenu;
+
+    SDL_bool program_launched = SDL_TRUE;
+    SDL_bool mainMenu_launched = SDL_TRUE;
+    loadMainMenu(&program_launched, &socketClient);
     
     while (!flag)
     {

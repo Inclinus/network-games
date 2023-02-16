@@ -30,3 +30,7 @@ void clearQueues();
 
 // Listen for NETWORK and SDL events
 NG_Event * listenAllEvents();
+
+
+// Create NG_Event
+NG_Event * createEvent(NG_EventType type, char * instructions);
