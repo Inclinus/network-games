@@ -330,7 +330,7 @@ int authentLoginOrRegister(SDL_Renderer * rendererMain){
     btn.endX = 345;
     btn.endY = 410;
 
-    createTextZoneCentered(rendererMenu, "Altino", WIDTH/2,50, 255, 255, 255,48);
+    createTextZoneCentered(rendererMain, "Altino", WIDTH/2,50, 255, 255, 255,48);
     
         
     
