@@ -9,6 +9,69 @@
 #include "tictactoe/tictactoe.h"
 #include "../events/EventManager.h"
 #include "connect4/connect4.h"
+#include <SDL2/SDL.h>
+#include "../sdl-utils/SDLUtils.h"
+
+void displayConfig(SDL_Renderer * renderer, char * text){
+    changeColor(renderer,255,255,255);
+    createFilledRectangle(0,0,500,400,renderer);
+    changeColor(renderer,0,0,0);
+    createFilledRectangle(100,150,300,50,renderer);
+
+    createTextZone(renderer,text,105,160,255,255,255);
+    updateRenderer(renderer);
+}
+
+void configServer(){
+    initSDL();
+
+    SDL_Window * configWindow = SDL_CreateWindow("PARAMETRES",50,50,500,400,0);
+    SDL_Renderer * configRenderer = SDL_CreateRenderer(configWindow, -1, 0);
+
+
+
+    char * text = malloc(sizeof(char)*2);
+    text[0] = ' ';
+    text[1] = '\0';
+
+    displayConfig(configRenderer,text);
+
+
+    int quit = 0;
+    while(!quit){
+        SDL_Event event;
+        while(SDL_PollEvent(&event)){
+            switch (event.type) {
+                case SDL_QUIT:
+                    quit=1;
+                    break;
+                case SDL_KEYDOWN:
+                    if(event.key.keysym.sym == SDLK_KP_ENTER){
+                        quit=2;
+                        break;
+                    } else if(event.key.keysym.sym == SDLK_BACKSPACE){
+                        int length = strlen(text);
+                        if(length>0){
+                            text = realloc(text,length*sizeof(char));
+                            text[length-1] = '\0';
+                        }
+                    } else {
+                        int length = strlen(text);
+                        text = realloc(text,length* sizeof(char)+2);
+                        const char * keyname = SDL_GetKeyName(event.key.keysym.sym);
+                        char keyChar = keyname[0];
+
+                        text[length] = keyChar;
+                        text[length+1] = '\0';
+                    }
+            }
+            displayConfig(configRenderer,text);
+        }
+    }
+
+
+}
+
 
 int main() {
     eventManagerInit();
@@ -57,8 +120,11 @@ int main() {
     //   COmpare la position du clic avec tes boutons et lance en fonction tictactoe ou connect4
     //   PS : pour l'instant connect4 est une fenêtre vide avec un texte connect 4
 
-    tictactoe(&socketClient);
+
+    configServer();
+    //tictactoe(&socketClient);
     //connect4(&socketClient);
+
 
     close(socketClient);
 
