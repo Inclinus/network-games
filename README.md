@@ -62,5 +62,5 @@ Pas d'inquiétude un docker à été réalisé pour vous et tout est inclus deda
 $ docker pull ghcr.io/kyatons/srv-network-games:latest
 
 # Lancer le docker
-$ docker run -p 4444:4444 ghcr.io/kyatons/srv-network-games:latest
+$ docker run -p 4444:4444 -it ghcr.io/kyatons/srv-network-games:latest
 ```
