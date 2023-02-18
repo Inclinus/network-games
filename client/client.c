@@ -11,12 +11,12 @@
 #include "connect4/connect4.h"
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL.h>
-#include "sdl-client.h"
 #include "../sdl-utils/SDLUtils.h"
+#include "guis/MainMenu.h"
 #include <SDL2/SDL_ttf.h>
 #include <pthread.h>
 
-int flag = 0;
+SDL_bool clientRunning = SDL_TRUE;
 int * clientSocket;
 
 // action = 1 -> login
@@ -100,15 +100,11 @@ int main() {
 
     int outputMenu;
 
-    SDL_bool program_launched = SDL_TRUE;
-    SDL_bool mainMenu_launched = SDL_TRUE;
-    loadMainMenu(&program_launched, &socketClient);
-    
-    while (!flag)
-    {
-        outputMenu = MainMenu(rendererMenu);
-        switch (outputMenu)
-        {
+    while (clientRunning) {
+        loadMainMenu(&clientRunning,&socketClient);
+
+        outputMenu = cr(rendererMenu);
+        switch (outputMenu){
         case 1:
             printf("CASE 1 \n");
             send(socketClient, "QUEUE", 5, 0);
@@ -185,7 +181,7 @@ int main() {
         case 3:
             SDL_DestroyWindow(windowMenu);
             SDL_Quit();
-            flag =1;
+            clientRunning = SDL_FALSE;
             break;
 
         }
