@@ -76,20 +76,21 @@ int main() {
     clientSocket = &socketClient;
 
 
-
-    send(socketClient, "LOGIN", 5, 0);
-
-    int action_login;
-    printf("1 - Se connecter\n 2 - S'inscrire\n");
-    scanf("%d", &action_login);
-    if (action_login == 1) {
-        while (login(&socketClient, 1) == 0);
-    } else if (action_login == 2) {
-        login(&socketClient, 2);
-    } else {
-        printf("ERREUR DE CHOIX !\n");
-        exit(1);
-    }
+//    tictactoe(clientSocket);
+//
+//    send(socketClient, "LOGIN", 5, 0);
+//
+//    int action_login;
+//    printf("1 - Se connecter\n 2 - S'inscrire\n");
+//    scanf("%d", &action_login);
+//    if (action_login == 1) {
+//        while (login(&socketClient, 1) == 0);
+//    } else if (action_login == 2) {
+//        login(&socketClient, 2);
+//    } else {
+//        printf("ERREUR DE CHOIX !\n");
+//        exit(1);
+//    }
     // Clear event queues to be sure no events is stucked
     clearQueues();
 

@@ -73,18 +73,24 @@ void loadMainMenu(){
                     }
                     break;
                 case NETWORK:
-                    if(strcmp(event->instructions,"STARTLOBBYH")==0){
+                    if(strcmp(event->instructions,"LOBBYHOST")==0){
                         *isInQueue = SDL_FALSE;
                         *mainMenuRunning = SDL_FALSE;
+                        pthread_cancel(network_thread);
+                        pthread_cancel(sdl_thread);
                         choseGameMenu(rendererMenu,mainMenuClientSocket);
-                    } else if(strcmp(event->instructions,"STARTLOBBYJ")==0){
+                    } else if(strcmp(event->instructions,"LOBBYJOUR")==0){
                         *isInQueue = SDL_FALSE;
                         // TODO display text "game found, waiting for choice"
                     } else if(strcmp(event->instructions,"TICTACTOE")==0){
                         *mainMenuRunning = SDL_FALSE;
+                        pthread_cancel(network_thread);
+                        pthread_cancel(sdl_thread);
                         tictactoe(mainMenuClientSocket);
                     } else if(strcmp(event->instructions,"NCONNECT4")==0){
                         *mainMenuRunning = SDL_FALSE;
+                        pthread_cancel(network_thread);
+                        pthread_cancel(sdl_thread);
                         connect4(mainMenuClientSocket);
                     } else if(strcmp(event->instructions,"GAMEBREAK")==0){
                         // TODO remove display text game found
@@ -136,9 +142,9 @@ void * sdlClientListen(){
 
 void * networkMenuListen() {
     NG_Event *disconnectEvent = createEvent(NETWORK,"DISCONNECTED");
-
+    SDL_Log("LAUNCHING NETWORK THREAD MAINMENU");
     while(*mainMenuRunning){
-        char data[12];
+        char data[10];
         memset(data, '\0', sizeof(data));
         if (recv(*mainMenuClientSocket, data, sizeof(data), 0) <= 0) {
             sendEvent(disconnectEvent);
@@ -150,7 +156,7 @@ void * networkMenuListen() {
             }
             receivedDataEvent->type = NETWORK;
             unsigned long len = strlen(data);
-            SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
+            SDL_Log("[MAINMENU NETWORK LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
             receivedDataEvent->instructions = malloc(sizeof(char)*len);
             if(receivedDataEvent->instructions==NULL){
                 SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT INSTRUCTIONS");
@@ -159,6 +165,7 @@ void * networkMenuListen() {
             sendEvent(receivedDataEvent);
         }
     }
+    SDL_Log("EXITING NETWORK THREAD MAINMENU");
     pthread_exit(NULL);
 }
 

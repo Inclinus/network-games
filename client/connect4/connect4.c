@@ -141,14 +141,20 @@ int connect4(int * socketClient) {
                     SDL_Log("Vous avez gagné ! \n");
                     setDisplayedInfo("Vous avez gagné !");
                     connect_launched = SDL_FALSE;
+                    pthread_cancel(network_listener);
+                    pthread_cancel(sdl_listener);
                 } else if (strcmp("YOULOSE!", event->instructions) == 0) {
                     SDL_Log("Vous avez perdu ! \n");
                     setDisplayedInfo("Vous avez perdu !");
                     connect_launched = SDL_FALSE;
+                    pthread_cancel(network_listener);
+                    pthread_cancel(sdl_listener);
                 } else if (strcmp("EQUALITY", event->instructions) == 0) {
                     SDL_Log("Personne n'a gagné ! \n");
                     setDisplayedInfo("Personne n'a gagné !");
                     connect_launched = SDL_FALSE;
+                    pthread_cancel(network_listener);
+                    pthread_cancel(sdl_listener);
                 } else {
                     fprintf(stderr,"WTF IS THAT NETWORK EVENT : %s",event->instructions);
                 }

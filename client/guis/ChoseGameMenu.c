@@ -40,14 +40,22 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){
                     if(strcmp(event->instructions, "LEAVE") == 0){
                         send(*choseGameClientSocket, "LEAVEGAME", 9, 0);
                         *choseGameRunning = SDL_FALSE;
+                        pthread_cancel(network_thread);
+                        pthread_cancel(sdl_thread);
                         loadMainMenu();
                     } else if(strcmp(event->instructions, "TICTACTOE") == 0){
                         send(*choseGameClientSocket, "TICTACTOE", 9, 0);
                         *choseGameRunning = SDL_FALSE;
+                        // TODO here, fix that bug, test clients
+                        //      client of host is not launching
+                        pthread_cancel(network_thread);
+                        pthread_cancel(sdl_thread);
                         tictactoe(choseGameClientSocket);
                     } else if(strcmp(event->instructions, "CONNECT4") == 0){
                         send(*choseGameClientSocket, "NCONNECT4", 9, 0);
                         *choseGameRunning = SDL_FALSE;
+                        pthread_cancel(network_thread);
+                        pthread_cancel(sdl_thread);
                         connect4(choseGameClientSocket);
                     }
                     break;
@@ -144,7 +152,7 @@ void * choseGameNetworkListen() {
             }
             receivedDataEvent->type = NETWORK;
             unsigned long len = strlen(data);
-            SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
+            SDL_Log("[CHOSEGAME NETWORK LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
             receivedDataEvent->instructions = malloc(sizeof(char)*len);
             if(receivedDataEvent->instructions==NULL){
                 SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT INSTRUCTIONS");
