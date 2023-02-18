@@ -123,15 +123,31 @@ void * login(void * loginargs){;
     printf("RECU AFTER AUTH : %s\n", choix);
     if (strcmp(choix, "QUEUE") == 0) {
         if (myloginargs->nbJoueur%2 == 0) {
-            printf("CREATION DE LOBBY !\n");
-            args.socketPlayer1 = socketClient;
-            args.socketPlayer2 = 0;
-            args.GameId = 1;
-            pthread_t threadGame;
-            pthread_create(&threadGame, NULL, startGame, (void *)&args);
+//            printf("CREATION DE LOBBY !\n");
+//            args.socketPlayer1 = socketClient;
+//            args.socketPlayer2 = 0;
+//            args.GameId = 1;
+//            pthread_t threadGame;
+//            pthread_create(&threadGame, NULL, startGame, (void *)&args);
+            if (args.socketPlayer1 == 0) {
+                printf("CREATION DE LOBBY !\n");
+                args.socketPlayer1 = socketClient;
+                args.socketPlayer2 = 0;
+                args.GameId = 1;
+                pthread_t threadGame;
+                pthread_create(&threadGame, NULL, startGame, (void *)&args);
+            } else {
+                printf("JOIN DE LOBBY !\n");
+                args.socketPlayer2 = socketClient;
+            }
         } else if (myloginargs->nbJoueur%2 == 1) {
             if (args.socketPlayer1 == 0) {
-                printf("PAS DE LOBBY !\n");
+                printf("CREATION DE LOBBY !\n");
+                args.socketPlayer1 = socketClient;
+                args.socketPlayer2 = 0;
+                args.GameId = 1;
+                pthread_t threadGame;
+                pthread_create(&threadGame, NULL, startGame, (void *)&args);
             } else {
                 printf("JOIN DE LOBBY !\n");
                 args.socketPlayer2 = socketClient;
@@ -150,7 +166,7 @@ int main() {
     int socketServer = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addrServer;
     //addrServer.sin_addr.s_addr = inet_addr("127.0.0.1");
-    //addrServer.sin_addr.s_addr = inet_addr("92.222.131.57");
+    addrServer.sin_addr.s_addr = inet_addr("92.222.131.57");
     addrServer.sin_family = AF_INET;
     addrServer.sin_port = htons(4444);
 
