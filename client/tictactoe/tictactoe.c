@@ -38,6 +38,7 @@ char * tictactoeDisplayInfo;
 char * tictactoeDisplayFeedback;
 
 int tictactoe(int * socketClient) {
+    clearQueues();
     tictactoeClientSocket = socketClient;
     initSDL();
     window = SDL_CreateWindow("MORPION", 50, 50, 600, 700, 0);
@@ -209,7 +210,9 @@ void *networkListen() {
                 int px;
                 int py;
                 recv(*tictactoeClientSocket, &px, sizeof(px), 0);
+                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED [1] - CONTENT: \"%d\"",px);
                 recv(*tictactoeClientSocket, &py, sizeof(py), 0);
+                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED [2] - CONTENT: \"%d\"",py);
                 NG_Event *enemyPosEvent = malloc(sizeof(NG_Event)); // enemyPosEvent = Oxeaf & *enemyPosEvent = NG_EVENT{} &enemyPosEvent = 0xfk
                 if(enemyPosEvent==NULL){
                     SDL_ExitWithError("ERROR ALLOCATING ENEMYPOSEVENT");

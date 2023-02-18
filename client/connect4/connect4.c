@@ -52,6 +52,7 @@ char * actualDisplayedFeedback;
 int * connect4ClientSocket;
 
 int connect4(int * socketClient) {
+    clearQueues();
     setDisplayedInfo("Bienvenue !");
     connect4ClientSocket = socketClient;
     initSDL();

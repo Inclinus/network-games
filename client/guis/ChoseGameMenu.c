@@ -15,6 +15,7 @@ void * choseGameNetworkListen();
 void * choseGameSdlListen();
 
 int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){
+    clearQueues();
     choseGameRunning = malloc(sizeof(SDL_bool));
     if(choseGameRunning==NULL){
         SDL_ExitWithError("ERROR ALLOCATING CHOSEGAMERUNNING SDLBOOL");

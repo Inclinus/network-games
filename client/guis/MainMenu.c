@@ -31,6 +31,7 @@ int * mainMenuClientSocket = NULL;
 SDL_bool * isInQueue = NULL;
 
 void loadMainMenu(){
+    clearQueues();
     mainMenuRunning = malloc(sizeof(SDL_bool));
     if(mainMenuRunning==NULL){
         SDL_ExitWithError("ERROR ALLOCATING MAINMENURUNNING SDLBOOL");
