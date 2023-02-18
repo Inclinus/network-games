@@ -191,7 +191,7 @@ int connect4Server(int socketPlayer1, int socketPlayer2) { // Partie serveur du 
 
     while (!win) {
         turn++;
-        displayGame(game); /
+        displayGame(game);
 
         if (turn % 2 == 0){ // tour du joueur 1
             playerTurn(1, socketPlayer1, socketPlayer2, game, &win);
