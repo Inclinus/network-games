@@ -1,10 +1,13 @@
 #include <pthread.h>
 #include <SDL2/SDL_ttf.h>
+#include <sys/socket.h>
 #include "../../events/EventManager.h"
 #include "ChoseGameMenu.h"
 #include "SettingsMenu.h"
 #include "CreditMenu.h"
 #include "StatisticsMenu.h"
+#include "tictactoe.h"
+#include "connect4.h"
 
 Button * choseGameButton;
 Button * statisticsButton;
@@ -13,9 +16,9 @@ Button * quitButton;
 Button * optionButton;
 
 void initButtons();
-void createMenuMain();
 void * sdlClientListen();
-void * networkMenuListen(int *clientSocket);
+void displayMenuMain();
+void * networkMenuListen();
 
 SDL_bool * mainMenuRunning = NULL;
 SDL_bool * isClientRunning = NULL;
@@ -23,32 +26,31 @@ SDL_bool * isClientRunning = NULL;
 SDL_Renderer * rendererMenu = NULL;
 SDL_Window * windowMenu = NULL;
 
-void loadMainMenu(SDL_bool * clientRunning, int * clientSocket){
-    isClientRunning = clientRunning;
+int * socketClient = NULL;
+
+SDL_bool * isInQueue = NULL;
+
+void loadMainMenu(){
     *mainMenuRunning = SDL_TRUE;
+    *isInQueue = SDL_FALSE;
 
-    windowMenu = SDL_CreateWindow("ALTINO - NETWORK GAMES",50,50,WIDTH,HEIGHT,0);
-    rendererMenu = SDL_CreateRenderer(windowMenu,-1,0);
-
-    createMenuMain();
+    displayMenuMain();
 
     pthread_t sdl_thread;
     pthread_create(&sdl_thread, NULL, sdlClientListen, NULL);
 
     pthread_t network_thread;
-    pthread_create(&network_thread, NULL, (void*)networkMenuListen, clientSocket);
+    pthread_create(&network_thread, NULL, (void*)networkMenuListen, socketClient);
 
-    while(*isClientRunning){
+    while(*mainMenuRunning){
         NG_Event * event = NULL;
         while ((event=listenAllEvents()) != NULL) {
             switch (event->type) {
                 case SDL:
                     if(strcmp(event->instructions,"QUEUE")==0){
-                        // display text in queue
-                        // add the guy to the queue
-                    } else if(strcmp(event->instructions,"CHOSEGAME")==0){
-                        *mainMenuRunning = SDL_FALSE;
-                        choseGameMenu(rendererMenu);
+                        *isInQueue = SDL_TRUE;
+                        send(*socketClient, "QUEUE", 5, 0);
+                        // TODO display text IN QUEUE
                     } else if(strcmp(event->instructions,"STATS")==0){
                         *mainMenuRunning = SDL_FALSE;
                         statisticsMenu(rendererMenu);
@@ -61,11 +63,27 @@ void loadMainMenu(SDL_bool * clientRunning, int * clientSocket){
                     }
                     break;
                 case NETWORK:
+                    if(strcmp(event->instructions,"STARTLOBBYH")==0){
+                        *isInQueue = SDL_FALSE;
+                        *mainMenuRunning = SDL_FALSE;
+                        choseGameMenu(rendererMenu,socketClient);
+                    } else if(strcmp(event->instructions,"STARTLOBBYJ")==0){
+                        *isInQueue = SDL_FALSE;
+                        // TODO display text "game found, waiting for choice"
+                    } else if(strcmp(event->instructions,"TICTACTOE")==0){
+                        *mainMenuRunning = SDL_FALSE;
+                        tictactoe(socketClient);
+                    } else if(strcmp(event->instructions,"NCONNECT4")==0){
+                        *mainMenuRunning = SDL_FALSE;
+                        connect4(socketClient);
+                    } else if(strcmp(event->instructions,"GAMEBREAK")==0){
+                        // TODO remove display text game found
+                        //      add display text IN QUEUE
+                    }
                     break;
                 default:
                     break;
             }
-
         }
     }
 }
@@ -77,11 +95,11 @@ void * sdlClientListen(){
         while(SDL_PollEvent(&event)){
             switch(event.type){
                 case SDL_QUIT:
+                    send(*socketClient,"LEAVEGAME",9,0);
                     *mainMenuRunning = SDL_FALSE;
                     *isClientRunning = SDL_FALSE;
                     break;
-                case SDL_MOUSEBUTTONDOWN:
-                    ;
+                case SDL_MOUSEBUTTONDOWN:;
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>choseGameButton->beginX && x<choseGameButton->endX && y<choseGameButton->endY && y<choseGameButton->beginY){
@@ -102,41 +120,36 @@ void * sdlClientListen(){
             }
         }
     }
+    pthread_exit(NULL);
 }
 
 
-void * networkMenuListen(int *clientSocket) {
-    NG_Event *disconnectEvent = malloc(sizeof(NG_Event));
-    if(disconnectEvent==NULL){
-        SDL_ExitWithError("ERROR ALLOCATING DISCONNECTEVENT");
-    }
-    disconnectEvent->type = NETWORK;
-    disconnectEvent->instructions = malloc(sizeof(char)*12);
-    if(disconnectEvent->instructions==NULL){
-        SDL_ExitWithError("ERROR ALLOCATING DISCONNECTEVENT INSTRUCTIONS");
-    }
-    disconnectEvent->instructions = "DISCONNECTED";
+void * networkMenuListen() {
+    NG_Event *disconnectEvent = createEvent(NETWORK,"DISCONNECTED");
 
-//        char data[9];
-//        memset(data, '\0', sizeof(data));
-//        if (recv(*clientSocket, data, 8, 0) <= 0) {
-//            sendEvent(disconnectEvent);
-//            break;
-//        } else {
-//            NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
-//            if(receivedDataEvent==NULL){
-//                SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT");
-//            }
-//            receivedDataEvent->type = NETWORK;
-//            unsigned long len = strlen(data);
-//            SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
-//            receivedDataEvent->instructions = malloc(sizeof(char)*len);
-//            if(receivedDataEvent->instructions==NULL){
-//                SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT INSTRUCTIONS");
-//            }
-//            strcpy(receivedDataEvent->instructions,data);
-//            sendEvent(receivedDataEvent);
-//        }
+    while(*mainMenuRunning){
+        char data[12];
+        memset(data, '\0', sizeof(data));
+        if (recv(*socketClient, data, sizeof(data), 0) <= 0) {
+            sendEvent(disconnectEvent);
+            break;
+        }else {
+            NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
+            if(receivedDataEvent==NULL){
+                SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT");
+            }
+            receivedDataEvent->type = NETWORK;
+            unsigned long len = strlen(data);
+            SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
+            receivedDataEvent->instructions = malloc(sizeof(char)*len);
+            if(receivedDataEvent->instructions==NULL){
+                SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT INSTRUCTIONS");
+            }
+            strcpy(receivedDataEvent->instructions,data);
+            sendEvent(receivedDataEvent);
+        }
+    }
+    pthread_exit(NULL);
 }
 
 void initButtons(){
@@ -166,13 +179,7 @@ void initButtons(){
     optionButton->endY = 440;
 }
 
-
-
-void createMenuMain(){
-    initSDL();
-    TTF_Init();
-    initButtons();
-
+void displayMenuMain(){
     SDL_RenderClear(rendererMenu);
 
     changeColor(rendererMenu,45,45,48);
@@ -187,5 +194,17 @@ void createMenuMain(){
     createButton(rendererMenu,*optionButton,"Options");
 
     updateRenderer(rendererMenu);
+}
+
+void initSDLGUIs(SDL_bool * clientRunning, int * clientSocket){
+    socketClient = clientSocket;
+    initSDL();
+    TTF_Init();
+    initButtons();
+
+    windowMenu = SDL_CreateWindow("ALTINO - NETWORK GAMES",50,50,WIDTH,HEIGHT,0);
+    rendererMenu = SDL_CreateRenderer(windowMenu,-1,0);
+
+    isClientRunning = clientRunning;
 }
 

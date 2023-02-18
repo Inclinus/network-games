@@ -1,4 +1,5 @@
 #include "SettingsMenu.h"
+#include "MainMenu.h"
 
 SDL_bool settingsMenuRunning = SDL_FALSE;
 
@@ -38,7 +39,7 @@ void settingsMenu(SDL_Renderer * rendererMenu){
                     int y = event.button.y;
                     if(x>goBack.beginX && x<goBack.endX && y<goBack.endY && y>goBack.beginY){
                         settingsMenuRunning = SDL_FALSE;
-                        //MainMenu(rendererMenu);
+                        loadMainMenu();
                     }
                     else{
                         continue;

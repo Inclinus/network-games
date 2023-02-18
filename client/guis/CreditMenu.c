@@ -1,4 +1,5 @@
 #include "CreditMenu.h"
+#include "MainMenu.h"
 
 SDL_bool creditMenuRunning = SDL_FALSE;
 
@@ -32,9 +33,8 @@ void creditMenu(SDL_Renderer * rendererMenu){
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>option.beginX && x<option.endX && y<option.endY && y>option.beginY){
-                        creditMenuRunning = SDL_TRUE;
-                        loadMainMenu()
-                        //MainMenu(rendererMenu);
+                        creditMenuRunning = SDL_FALSE;
+                        loadMainMenu();
                     }
                     else{
                         continue;

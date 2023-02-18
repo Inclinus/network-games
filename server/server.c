@@ -46,12 +46,14 @@ void * startGame(void *args){
     choix[10] = '\0';
     printf("RECU : %s\n", choix);
 
-    if (strcmp(choix, "TICTACTOE") == 0) {
-        send(myargs->socketPlayer1, "TICTACTOE", 9, 0);
+
+    if(strcmp(choix, "LEAVEGAME") == 0){
+        send(myargs->socketPlayer1, "GAMEBREAK", 9, 0);
+        send(myargs->socketPlayer2, "GAMEBREAK", 9, 0);
+    } else if (strcmp(choix, "TICTACTOE") == 0) {
         send(myargs->socketPlayer2, "TICTACTOE", 9, 0);
         tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
     } else if (strcmp(choix, "NCONNECT4") == 0) {
-        send(myargs->socketPlayer1, "NCONNECT4", 9, 0);
         send(myargs->socketPlayer2, "NCONNECT4", 9, 0);
         connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
     }
@@ -148,7 +150,7 @@ int main() {
     int socketServer = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addrServer;
     //addrServer.sin_addr.s_addr = inet_addr("127.0.0.1");
-    addrServer.sin_addr.s_addr = inet_addr("92.222.131.57");
+    //addrServer.sin_addr.s_addr = inet_addr("92.222.131.57");
     addrServer.sin_family = AF_INET;
     addrServer.sin_port = htons(4444);
 

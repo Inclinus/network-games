@@ -75,6 +75,8 @@ int main() {
     printf("[DEBUG] CONNECTER !\n");
     clientSocket = &socketClient;
 
+
+
     send(socketClient, "LOGIN", 5, 0);
 
     int action_login;
@@ -90,107 +92,15 @@ int main() {
     }
     // Clear event queues to be sure no events is stucked
     clearQueues();
-    
-    // TODO implement choice of game here
-    //   Utilise le pollevent sdl (comme sur tictactoe) pour détecter un clic de souris
-    //   COmpare la position du clic avec tes boutons et lance en fonction tictactoe ou connect4
-    //   PS : pour l'instant connect4 est une fenêtre vide avec un texte connect 4
 
     printf("[DEBUG] FIN DE L'AUTHENTIFICATION !\n");
 
-    int outputMenu;
+
+    initSDLGUIs(&clientRunning,&socketClient);
 
     while (clientRunning) {
-        loadMainMenu(&clientRunning,&socketClient);
-
-        outputMenu = cr(rendererMenu);
-        switch (outputMenu){
-        case 1:
-            printf("CASE 1 \n");
-            send(socketClient, "QUEUE", 5, 0);
-            char buffer[12];
-            recv(socketClient, buffer, sizeof(buffer), 0);
-            buffer[11] = '\0';
-            printf("RECU : %s", buffer);
-
-            if(strcmp(buffer, "STARTLOBBYH") == 0){
-                printf("Le lobby a été crée et tu es l'hote !\n");
-                outputMenu = Game(rendererMenu);
-                switch (outputMenu)
-                {
-                    case 1:
-                        if(strcmp(buffer, "STARTLOBBYH") == 0){
-                            send(socketClient, "TICTACTOE", 9, 0);
-                        }
-                        char bufferstart1[10];
-                        recv(socketClient, bufferstart1, sizeof(bufferstart1), 0);
-                        bufferstart1[9] = '\0';
-                        if(strcmp(bufferstart1, "TICTACTOE") == 0){
-                            printf("Le jeu va commencer !\n");
-                            tictactoe(&socketClient);
-                        } else if (strcmp(bufferstart1, "NCONNECT4") == 0){
-                            printf("Le jeu va commencer !\n");
-                            connect4(&socketClient);
-                        } else {
-                            printf("ERREUR DE RECEPTION !\n");
-                        }
-                        //launch Morpion
-                        break;
-                    case 2:
-                        if(strcmp(buffer, "STARTLOBBYH") == 0){
-                            send(socketClient, "NCONNECT4", 9, 0);
-                        }
-                        char bufferstart2[10];
-                        recv(socketClient, bufferstart2, sizeof(bufferstart2), 0);
-                        bufferstart2[9] = '\0';
-                        if(strcmp(bufferstart2, "TICTACTOE") == 0){
-                            printf("Le jeu va commencer !\n");
-                            tictactoe(&socketClient);
-                        } else if (strcmp(bufferstart2, "NCONNECT4") == 0){
-                            printf("Le jeu va commencer !\n");
-                            connect4(&socketClient);
-                        } else {
-                            printf("ERREUR DE RECEPTION !\n");
-                        }
-                        //launch Puissance4
-                        break;
-                    case 3:
-                        break;
-                }
-            } else if (strcmp(buffer, "STARTLOBBYJ") == 0){
-                printf("Le lobby a été crée et tu es un joueur !\n");
-                char bufferstart[10];
-                recv(socketClient, bufferstart, sizeof(bufferstart), 0);
-                bufferstart[9] = '\0';
-                if(strcmp(bufferstart, "TICTACTOE") == 0){
-                    printf("Le jeu va commencer !\n");
-                    tictactoe(&socketClient);
-                } else if (strcmp(bufferstart, "NCONNECT4") == 0){
-                    printf("Le jeu va commencer !\n");
-                    connect4(&socketClient);
-                } else {
-                    printf("ERREUR DE RECEPTION !\n");
-                }
-            } else {
-                printf("ERREUR DE RECEPTION !\n");
-            }
-            break;
-        case 2:
-            // launch stat
-            break;
-        case 3:
-            SDL_DestroyWindow(windowMenu);
-            SDL_Quit();
-            clientRunning = SDL_FALSE;
-            break;
-
-        }
+        loadMainMenu();
     }
-
-    //char buffer[25];
-    //recv(socketClient, buffer, sizeof(buffer), 0);
-
-    //tictactoe(&socketClient);
 
     close(socketClient);
 

@@ -1,3 +1,4 @@
 #include "GUI.h"
 
-void loadMainMenu(SDL_bool * clientRunning, int * clientSocket);
+void loadMainMenu();
+void initSDLGUIs(SDL_bool * clientRunning, int * clientSocket);
