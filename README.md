@@ -23,11 +23,11 @@ Pas d'inquiétude un script start.sh est mis a disposition et va vérifier et/ou
 - Librairie SDL2 Image
 - Librairie SDL2 Ttf
 
-### <img src="https://camo.githubusercontent.com/0ce367415651b8e93f7c81caf2fd447bb5633ed2b5e58b82fd032a15539009fa/68747470733a2f2f63646e2e7261776769742e636f6d2f63726f636f64696c656a732f666f6e742d617765736f6d652d6173736574732f6d61737465722f6d656469612f7261696e626f772f6c696e75782e737667" alt= "" width="18" height="18"> Execution
-
 ### Prérequis
 
 - Git
+
+### <img src="https://camo.githubusercontent.com/0ce367415651b8e93f7c81caf2fd447bb5633ed2b5e58b82fd032a15539009fa/68747470733a2f2f63646e2e7261776769742e636f6d2f63726f636f64696c656a732f666f6e742d617765736f6d652d6173736574732f6d61737465722f6d656469612f7261696e626f772f6c696e75782e737667" alt= "" width="18" height="18"> Execution
 
 ```bash
 
