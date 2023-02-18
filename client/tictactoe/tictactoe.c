@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <SDL2/SDL_render.h>
 #include <SDL2/SDL.h>
 #include <pthread.h>
 #include <regex.h>
@@ -33,13 +32,13 @@ SDL_bool program_launched = SDL_TRUE;
 
 SDL_bool quitForcedByPlayer = SDL_FALSE;
 
-int * clientSocket;
+int * tictactoeClientSocket;
 
 char * tictactoeDisplayInfo;
 char * tictactoeDisplayFeedback;
 
 int tictactoe(int * socketClient) {
-    clientSocket = socketClient;
+    tictactoeClientSocket = socketClient;
     initSDL();
     window = SDL_CreateWindow("MORPION", 50, 50, 600, 700, 0);
     renderer = SDL_CreateRenderer(window, -1, 0);
@@ -201,7 +200,7 @@ void *networkListen() {
     while (program_launched) {
         char data[9];
         memset(data, '\0', sizeof(data));
-        if (recv(*clientSocket, data, 8, 0) <= 0) {
+        if (recv(*tictactoeClientSocket, data, 8, 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
         } else {
@@ -209,8 +208,8 @@ void *networkListen() {
                 sendEvent(createEvent(NETWORK,"ENEMYTURN"));
                 int px;
                 int py;
-                recv(*clientSocket, &px, sizeof(px), 0);
-                recv(*clientSocket, &py, sizeof(py), 0);
+                recv(*tictactoeClientSocket, &px, sizeof(px), 0);
+                recv(*tictactoeClientSocket, &py, sizeof(py), 0);
                 NG_Event *enemyPosEvent = malloc(sizeof(NG_Event)); // enemyPosEvent = Oxeaf & *enemyPosEvent = NG_EVENT{} &enemyPosEvent = 0xfk
                 if(enemyPosEvent==NULL){
                     SDL_ExitWithError("ERROR ALLOCATING ENEMYPOSEVENT");

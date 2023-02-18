@@ -1,4 +1,15 @@
-#include "../client/sdl-client.h"
+#ifndef NETWORK_GAMES_SDLUtils_H
+#define NETWORK_GAMES_SDLUtils_H
+
+
+#include <SDL2/SDL.h>
+typedef struct{
+    int beginX;
+    int beginY;
+    int endX;
+    int endY;
+    int actionType;
+} Button ;
 
 // SDL Utils related to main window and renderer
 void initSDL();
@@ -16,3 +27,5 @@ void createButton(SDL_Renderer * renderer, Button btn, const char * text);
 // SDL Error utils
 void SDL_ExitWithError(const char *message);
 void closeWindowAndRendererAndThrowError(SDL_Renderer * renderer, SDL_Window * window, const char *message);
+
+#endif

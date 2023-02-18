@@ -1,10 +1,14 @@
 #include "CreditMenu.h"
 #include "MainMenu.h"
 
-SDL_bool creditMenuRunning = SDL_FALSE;
+SDL_bool * creditMenuRunning = NULL;
 
 void creditMenu(SDL_Renderer * rendererMenu){
-    creditMenuRunning = SDL_TRUE;
+    creditMenuRunning = malloc(sizeof(SDL_bool));
+    if(creditMenuRunning==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING CREDITMENURUNNING SDLBOOL");
+    }
+    *creditMenuRunning = SDL_TRUE;
 
     Button option;
     option.beginX = 20;
@@ -20,20 +24,20 @@ void creditMenu(SDL_Renderer * rendererMenu){
 
     updateRenderer(rendererMenu);
 
-    while(creditMenuRunning){
+    while(*creditMenuRunning){
         SDL_Event event;
 
         while(SDL_PollEvent(&event)){
             switch(event.type){
                 case SDL_QUIT:
-                    creditMenuRunning = SDL_TRUE;
+                    *creditMenuRunning = SDL_TRUE;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     ;
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>option.beginX && x<option.endX && y<option.endY && y>option.beginY){
-                        creditMenuRunning = SDL_FALSE;
+                        *creditMenuRunning = SDL_FALSE;
                         loadMainMenu();
                     }
                     else{

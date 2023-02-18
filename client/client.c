@@ -95,7 +95,6 @@ int main() {
 
     printf("[DEBUG] FIN DE L'AUTHENTIFICATION !\n");
 
-
     initSDLGUIs(&clientRunning,&socketClient);
 
     while (clientRunning) {

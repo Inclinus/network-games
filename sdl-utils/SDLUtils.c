@@ -1,7 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "SDLUtils.h"
-#include "../client/sdl-client.h"
 #include <math.h>
 
 void changeColor(SDL_Renderer * renderer,int red, int green, int blue){
@@ -53,7 +52,7 @@ void SDL_ExitWithError(const char *message){
 
 SDL_Rect * createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, Uint8 red, Uint8 green, Uint8 blue){
 
-    TTF_Font * font = TTF_OpenFont("/home/kyato/CLionProjects/network-games/assets/Roboto-Regular.ttf", 24);
+    TTF_Font * font = TTF_OpenFont("/home/noam/Bureau/C/network-games/assets/Roboto-Regular.ttf", 24);
     if(font==NULL){
         SDL_ExitWithError("FONT NULL");
     }
@@ -98,7 +97,7 @@ void createCircle(SDL_Renderer * renderer, int x, int y, int radius)
 
 SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text,int posX, int posY, Uint8 red, Uint8 green, Uint8 blue, int size){
 
-    TTF_Font * font = TTF_OpenFont("/home/kyato/CLionProjects/network-games/assets/Roboto-Regular.ttf", size);
+    TTF_Font * font = TTF_OpenFont("/home/noam/Bureau/C/network-games/assets/Roboto-Regular.ttf", size);
     if(font==NULL){
         SDL_ExitWithError("FONT NULL");
     }
@@ -129,7 +128,7 @@ SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text,int
 }
 
 void createButton(SDL_Renderer * renderer, Button btn,const char * text){
-
+    SDL_Log("CREATING BUTTON");
     int posX = btn.beginX+((btn.endX-btn.beginX)/2);
     int posY = btn.beginY+((btn.endY-btn.beginY)/2);
 

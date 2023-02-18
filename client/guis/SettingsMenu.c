@@ -1,10 +1,14 @@
 #include "SettingsMenu.h"
 #include "MainMenu.h"
 
-SDL_bool settingsMenuRunning = SDL_FALSE;
+SDL_bool * settingsMenuRunning = NULL;
 
 void settingsMenu(SDL_Renderer * rendererMenu){
-    settingsMenuRunning = SDL_TRUE;
+    settingsMenuRunning = malloc(sizeof(SDL_bool));
+    if(settingsMenuRunning==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING SETTINGSMENURUNNING SDLBOOL");
+    }
+    *settingsMenuRunning = SDL_TRUE;
 
     Button goBack;
     goBack.beginX = 20;
@@ -26,19 +30,21 @@ void settingsMenu(SDL_Renderer * rendererMenu){
     createButton(rendererMenu,inputIp, "ip du serveur :");
     createButton(rendererMenu,inputPort, "port du serveur :");
 
-    while(settingsMenuRunning){
+    updateRenderer(rendererMenu);
+
+    while(*settingsMenuRunning){
         SDL_Event event;
         while(SDL_PollEvent(&event)){
             switch(event.type){
                 case SDL_QUIT:
-                    settingsMenuRunning = SDL_FALSE;
+                    *settingsMenuRunning = SDL_FALSE;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     ;
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>goBack.beginX && x<goBack.endX && y<goBack.endY && y>goBack.beginY){
-                        settingsMenuRunning = SDL_FALSE;
+                        *settingsMenuRunning = SDL_FALSE;
                         loadMainMenu();
                     }
                     else{

@@ -1,13 +1,13 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include "ChoseGameMenu.h"
-#include "tictactoe.h"
-#include "connect4.h"
+#include "../tictactoe/tictactoe.h"
+#include "../connect4/connect4.h"
 #include "MainMenu.h"
 #include "../../events/EventManager.h"
 
 SDL_bool * choseGameRunning = NULL;
-int * clientSocket = NULL;
+int * choseGameClientSocket = NULL;
 SDL_Renderer * choseGameRenderer = NULL;
 
 
@@ -15,8 +15,13 @@ void * choseGameNetworkListen();
 void * choseGameSdlListen();
 
 int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){
+    choseGameRunning = malloc(sizeof(SDL_bool));
+    if(choseGameRunning==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING CHOSEGAMERUNNING SDLBOOL");
+    }
     *choseGameRunning = SDL_TRUE;
-    clientSocket = socketClient;
+
+    choseGameClientSocket = socketClient;
     choseGameRenderer = rendererMenu;
 
     pthread_t sdl_thread;
@@ -32,17 +37,17 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){
             switch (event->type) {
                 case SDL:
                     if(strcmp(event->instructions, "LEAVE") == 0){
-                        send(*clientSocket, "LEAVEGAME", 9, 0);
+                        send(*choseGameClientSocket, "LEAVEGAME", 9, 0);
                         *choseGameRunning = SDL_FALSE;
                         loadMainMenu();
                     } else if(strcmp(event->instructions, "TICTACTOE") == 0){
-                        send(*clientSocket, "TICTACTOE", 9, 0);
+                        send(*choseGameClientSocket, "TICTACTOE", 9, 0);
                         *choseGameRunning = SDL_FALSE;
-                        tictactoe(clientSocket);
+                        tictactoe(choseGameClientSocket);
                     } else if(strcmp(event->instructions, "CONNECT4") == 0){
-                        send(*clientSocket, "NCONNECT4", 9, 0);
+                        send(*choseGameClientSocket, "NCONNECT4", 9, 0);
                         *choseGameRunning = SDL_FALSE;
-                        connect4(clientSocket);
+                        connect4(choseGameClientSocket);
                     }
                     break;
                 case NETWORK:
@@ -128,7 +133,7 @@ void * choseGameNetworkListen() {
     while(*choseGameRunning){
         char data[12];
         memset(data, '\0', sizeof(data));
-        if (recv(*clientSocket, data, sizeof(data), 0) <= 0) {
+        if (recv(*choseGameClientSocket, data, sizeof(data), 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
         }else {
