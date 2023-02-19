@@ -138,6 +138,7 @@ void * login(void * loginargs) {
                     args.GameId = 1;
                     pthread_t threadGame;
                     pthread_create(&threadGame, NULL, startGame, (void *) &args);
+                    pthread_join(threadGame, NULL);
                 } else {
                     printf("JOIN DE LOBBY !\n");
                     args.socketPlayer2 = socketClient;
@@ -150,6 +151,7 @@ void * login(void * loginargs) {
                     args.GameId = 1;
                     pthread_t threadGame;
                     pthread_create(&threadGame, NULL, startGame, (void *) &args);
+                    pthread_join(threadGame, NULL);
                 } else {
                     printf("JOIN DE LOBBY !\n");
                     args.socketPlayer2 = socketClient;

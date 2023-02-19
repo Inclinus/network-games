@@ -78,9 +78,11 @@ int tictactoe(int socketPlayer1, int socketPlayer2) {
         send(socketPlayer1, "PING", 4, 0);
         send(socketPlayer2, "PING", 4, 0);
         recv(socketPlayer1, buffer1, 4, 0);
-        printf("buffer1 : %s", buffer1);
+        buffer1[4] = '\0';
+        printf("buffer1 : %s\n", buffer1);
         recv(socketPlayer2, buffer2, 4, 0);
-        printf("buffer2 : %s", buffer2);
+        buffer2[4] = '\0';
+        printf("buffer2 : %s\n", buffer2);
     }
 
     printf("PARTIE COMMENCE !\n");
@@ -111,7 +113,6 @@ int tictactoe(int socketPlayer1, int socketPlayer2) {
     int flag=0;
 
     while (flag==0) {
-        player+=1;
         printboard(board);
 
         if (player%2==0){
@@ -129,6 +130,7 @@ int tictactoe(int socketPlayer1, int socketPlayer2) {
         if(player>=10){
             flag = draw(socketPlayer2,socketPlayer1);
         }
+        player+=1;
     }
     free(row);
     free(board);

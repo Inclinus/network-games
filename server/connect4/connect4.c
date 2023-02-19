@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <string.h>
 
 int SIZE = 7;
 
@@ -178,6 +179,22 @@ void playerTurn(int playerID, int socketPlayer1, int socketPlayer2, char **game,
 
 
 int connect4Server(int socketPlayer1, int socketPlayer2) {
+
+    char buffer1[5];
+    char buffer2[5];
+    while (strcmp(buffer1, "PONG") != 0 && strcmp(buffer2, "PONG") != 0) {
+        printf("SEND PING !!!\n");
+        fflush(stdout);
+        send(socketPlayer1, "PING", 4, 0);
+        send(socketPlayer2, "PING", 4, 0);
+        recv(socketPlayer1, buffer1, 4, 0);
+        buffer1[4] = '\0';
+        printf("buffer1 : %s\n", buffer1);
+        recv(socketPlayer2, buffer2, 4, 0);
+        buffer2[4] = '\0';
+        printf("buffer2 : %s\n", buffer2);
+    }
+
     printf("PARTIE COMMENCE !\n");
 
     char **game = malloc(sizeof(char *) * SIZE);

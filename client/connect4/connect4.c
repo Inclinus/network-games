@@ -226,7 +226,9 @@ void *networkListener() {
             sendEvent(disconnectEvent);
             break;
         } else {
-            if (strcmp("WAITTURN", data) == 0) {
+            if (strcmp("PING", data) == 0){
+                send(*connect4ClientSocket, "PONG", 4, 0);
+            } else if (strcmp("WAITTURN", data) == 0) {
                 NG_Event *enemyTurnEvent = malloc(sizeof(NG_Event));
                 if(enemyTurnEvent==NULL){
                     SDL_ExitWithError("ERROR ALLOCATING ENEMYTURN EVENT");
