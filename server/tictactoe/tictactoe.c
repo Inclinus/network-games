@@ -164,9 +164,7 @@ int tictactoe(int socketPlayer1, int socketPlayer2) { // fonction principale per
             flag = win(socketPlayer1, socketPlayer2, 1); // Retourne 1 en cas de victoire
         } else if (winCondition(board,2)){// Vérifie toutes les conditions de victoire pour le joueurs 2
             flag = win(socketPlayer2, socketPlayer1, 2); // Retourne 1 en cas de victoire
-        }
-
-        if(player>=10){ // au 10ème coup la partie s'arrête car le tableau ne peux accueillir que 9 coup
+        } else if(player>=10){ // au 10ème coup la partie s'arrête car le tableau ne peux accueillir que 9 coup
             flag = draw(socketPlayer2,socketPlayer1);
         }
     }

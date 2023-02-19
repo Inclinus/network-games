@@ -64,8 +64,9 @@ void loadMainMenu(){
                             // TODO display text IN QUEUE
                         }
                     } else if(strcmp(event->instructions,"STATS")==0){
-                        *mainMenuRunning = SDL_FALSE;
-                        //statisticsMenu(rendererMenu);
+                        //*mainMenuRunning = SDL_FALSE;
+                        SDL_Log("STATS");
+                        send(*mainMenuClientSocket, "STATS", 5, 0);
                     } else if(strcmp(event->instructions,"CREDIT")==0){
                         *mainMenuRunning = SDL_FALSE;
                         creditMenu(rendererMenu);
@@ -147,6 +148,12 @@ void * networkMenuListen() {
             break;
         } else if (strcmp("PING", data) == 0) {
             SDL_Log("[MAINMENU NETWORK LISTENER] PING RECEIVED");
+        } else if (strcmp("STATS", data) == 0) {
+            SDL_Log("[MAINMENU NETWORK LISTENER] STATS RECEIVED");
+            Stats * stats = malloc(sizeof(Stats));
+            recv(*mainMenuClientSocket, stats, sizeof(Stats), 0);
+            //*mainMenuRunning = SDL_FALSE;
+            statisticsMenu(rendererMenu, stats);
         } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
             if(receivedDataEvent==NULL){
