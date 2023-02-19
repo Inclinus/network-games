@@ -25,6 +25,10 @@ typedef struct LoginArgs {
 
 GameArgs args;
 
+void * login(void * loginargs);
+
+int lobby(int * socketClient);
+
 
 void * startGame(void *args){
     struct GameArgs *myargs;
@@ -58,7 +62,11 @@ void * startGame(void *args){
         send(myargs->socketPlayer2, "NCONNECT4", 9, 0);
         connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
     }
-
+    printf("La game id %d est terminé !\n",((GameArgs *)args)->GameId);
+//    lobby(&myargs->socketPlayer1);
+//    printf("LOBBY CREATE FOR PLAYERS\n");
+//    lobby(&myargs->socketPlayer2);
+//    printf("LOBBY CREATE FOR PLAYERS\n");
     return 0;
 }
 
@@ -117,36 +125,47 @@ void * login(void * loginargs) {
             exit(EXIT_FAILURE);
         }
     }
+    lobby(&socketClient);
+    closeBdd(con);
+}
+
+int lobby(int * socketClient) {
+
+    while (1) {
         char choix[6];
-        // QUEUE
-        // STATS
-        recv(socketClient, choix, sizeof(choix), 0);
+        recv(*socketClient, choix, sizeof(choix), 0);
         choix[5] = '\0';
         printf("RECU AFTER AUTH 2 : %s\n", choix);
 
         if (strcmp(choix, "QUEUE") == 0) {
-                if (args.socketPlayer1 == 0) {
-                    printf("CREATION DE LOBBY !\n");
-                    args.socketPlayer1 = socketClient;
-                    args.socketPlayer2 = 0;
-                    args.GameId = 1;
-                    pthread_t threadGame;
-                    pthread_create(&threadGame, NULL, startGame, (void *) &args);
-                    pthread_join(threadGame, NULL);
-                } else {
-                    printf("JOIN DE LOBBY !\n");
-                    args.socketPlayer2 = socketClient;
-                }
+            if (args.socketPlayer1 == 0) {
+                printf("CREATION DE LOBBY !\n");
+                args.socketPlayer1 = *socketClient;
+                args.socketPlayer2 = 0;
+                args.GameId = 1;
+                pthread_t threadGame;
+                pthread_create(&threadGame, NULL, startGame, (void *) &args);
+                pthread_join(threadGame, NULL);
+            } else {
+                printf("JOIN DE LOBBY !\n");
+                args.socketPlayer2 = *socketClient;
+            }
         } else if (strcmp(choix, "STATS") == 0) {
             // TODO STATS
+            send(*socketClient, "STATS", 5, 0);
+            MYSQL *con = connectBdd();
             Stats result = getStats(con, "tibo");
+            closeBdd(con);
             printf("nbWinTictactoe : %d", result.nbWinTictactoe);
-            send(socketClient, &result, sizeof(result), 0);
+            send(*socketClient, &result, sizeof(result), 0);
             printf("STATS ENVOYER !\n");
         } else {
             printf("WTF THIS PACKET !\n");
-            exit(EXIT_FAILURE);
+            close(*socketClient);
+            printf("SOCKET CLOSED !\n");
+            //exit(EXIT_FAILURE);
         }
+    }
 }
 
 int main() {
