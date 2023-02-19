@@ -300,8 +300,6 @@ int main() {
 
     printf("En attente d'adversaire ...\n");
 
-    tictactoe(clientSocket);
-
     send(socketClient, "LOGIN", 5, 0);
 
     int action_login;

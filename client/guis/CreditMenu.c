@@ -20,6 +20,10 @@ void creditMenu(SDL_Renderer * rendererMenu){
 
     createTextZoneCentered(rendererMenu, "Credit : ",WIDTH/2,50, 255, 255, 255,48);
 
+    createTextZoneCentered(rendererMenu, "Noam DE MASURE",WIDTH/2,HEIGHT/2-60, 255, 255, 255,48);
+    createTextZoneCentered(rendererMenu, "Thibaut LULINSKI ",WIDTH/2,HEIGHT/2, 255, 255, 255,48);
+    createTextZoneCentered(rendererMenu, "Alexandre COMET ",WIDTH/2,HEIGHT/2+60, 255, 255, 255,48);
+
     createButton(rendererMenu,option, "retour");
 
     updateRenderer(rendererMenu);

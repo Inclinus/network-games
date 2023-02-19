@@ -63,7 +63,7 @@ void loadMainMenu(){
                         // TODO display text IN QUEUE
                     } else if(strcmp(event->instructions,"STATS")==0){
                         *mainMenuRunning = SDL_FALSE;
-                        //statisticsMenu(rendererMenu);
+                        statisticsMenu(rendererMenu);
                     } else if(strcmp(event->instructions,"CREDIT")==0){
                         *mainMenuRunning = SDL_FALSE;
                         creditMenu(rendererMenu);
