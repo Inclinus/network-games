@@ -180,22 +180,60 @@ void playerTurn(int playerID, int socketPlayer1, int socketPlayer2, char **game,
 
 int connect4Server(int socketPlayer1, int socketPlayer2) { // Partie serveur du jeu permettant de lier les deux joueurs
 
-    char buffer1[5];
-    char buffer2[5];
-    while (strcmp(buffer1, "PONG") != 0 && strcmp(buffer2, "PONG") != 0) {
+    int hostCount = 0;
+    int playerCount = 0;
+    // On attend que les deux joueurs soient prêts
+    while (hostCount != 2 || playerCount != 1) {
         printf("SEND PING !!!\n");
         fflush(stdout);
-        send(socketPlayer1, "PING", 4, 0);
-        send(socketPlayer2, "PING", 4, 0);
-        recv(socketPlayer1, buffer1, 4, 0);
-        buffer1[4] = '\0';
-        printf("buffer1 : %s\n", buffer1);
-        recv(socketPlayer2, buffer2, 4, 0);
-        buffer2[4] = '\0';
-        printf("buffer2 : %s\n", buffer2);
+
+        if (hostCount == 0) {
+            char buffer1[5];
+            char buffer2[5];
+            send(socketPlayer1, "PING", 4, 0);
+            send(socketPlayer1, "PING", 4, 0);
+
+            recv(socketPlayer1, buffer1, 4, 0);
+            buffer1[4] = '\0';
+            printf("[1] buffer1 : %s\n", buffer1);
+            if (strcmp(buffer1, "DEAD") == 0) {
+                hostCount++;
+            }
+
+            recv(socketPlayer1, buffer2, 4, 0);
+            buffer2[4] = '\0';
+            printf("[2] buffer2 : %s\n", buffer2);
+            if (strcmp(buffer2, "DEAD") == 0) {
+                hostCount++;
+            }
+        } else if (hostCount == 1) {
+            char buffer[5];
+            send(socketPlayer1, "PING", 4, 0);
+
+            recv(socketPlayer1, buffer, 4, 0);
+            buffer[4] = '\0';
+            printf("[3] buffer1 : %s\n", buffer);
+            if (strcmp(buffer, "DEAD") == 0) {
+                hostCount++;
+            }
+        }
+
+        if (playerCount != 1) {
+            char buffer[5];
+            send(socketPlayer2, "PING", 4, 0);
+            recv(socketPlayer2, buffer, 4, 0);
+            buffer[4] = '\0';
+            printf("[4] buffer : %s\n", buffer);
+            if (strcmp(buffer, "DEAD") == 0) {
+                playerCount++;
+            }
+        }
+
     }
 
     printf("PARTIE COMMENCE !\n");
+    send(socketPlayer1, "START", 5, 0);
+    send(socketPlayer2, "START", 5, 0);
 
     char **game = malloc(sizeof(char *) * SIZE); // Créer le tableau
     initializeGame(game); // Commence la partie
