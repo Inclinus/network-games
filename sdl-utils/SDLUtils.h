@@ -23,6 +23,7 @@ SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text, in
 SDL_Rect * createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, Uint8 red, Uint8 green, Uint8 blue);
 void createCircle(SDL_Renderer * renderer, int x, int y, int radius);
 void createButton(SDL_Renderer * renderer, Button btn, const char * text);
+void createButtonColor(SDL_Renderer * renderer, Button btn, const char * text, Uint8 red, Uint8 green, Uint8 blue);
 
 // SDL Error utils
 void SDL_ExitWithError(const char *message);

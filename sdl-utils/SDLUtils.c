@@ -141,3 +141,18 @@ void createButton(SDL_Renderer * renderer, Button btn,const char * text){
 
     createTextZoneCentered(renderer, text,posX,posY, 255, 255, 255,24);
 }
+
+void createButtonColor(SDL_Renderer * renderer, Button btn,const char * text, Uint8 red, Uint8 green, Uint8 blue){
+
+    int posX = btn.beginX+((btn.endX-btn.beginX)/2);
+    int posY = btn.beginY+((btn.endY-btn.beginY)/2);
+
+    changeColor(renderer,red,green,blue);
+    createFilledRectangle(btn.beginX,btn.beginY,btn.endX-btn.beginX,btn.endY-btn.beginY,renderer);
+
+    changeColor(renderer,45,45,48);
+    createFilledRectangle(btn.beginX+5,btn.beginY+5,btn.endX-(btn.beginX+9),btn.endY-(btn.beginY+9),renderer);
+
+
+    createTextZoneCentered(renderer, text,posX,posY, 255, 255, 255,24);
+}
