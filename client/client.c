@@ -78,7 +78,7 @@ char * getServerIp(){
     return serverIp;
 }
 
-void str_to_uint16(const char *str, uint16_t *res) {
+void client_str_to_uint16(const char *str, uint16_t *res) {
     char *end;
     long val = strtol(str, &end, 10);
     *res = (uint16_t)val;
@@ -102,7 +102,7 @@ uint16_t getServerPort(){
         sscanf(line, "%[^=]=%[^\n]", field_name, field_value);
         if (strcmp(field_name, "server_port") == 0) {
             printf("Server PORT: %s\n", field_value);
-            str_to_uint16(field_value,&result);
+            client_str_to_uint16(field_value,&result);
         }
     }
 

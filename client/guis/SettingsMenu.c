@@ -197,7 +197,7 @@ void saveAll(char * ip, char * port, char * username, char * password){
 void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, Input selectedInput){
 
     changeColor(renderer,255,255,255);
-    createFilledRectangle(0,0,500,400,renderer);
+    createFilledRectangle(0,0,720,480,renderer);
     SDL_Log("STRLEN DE IPTEXT = %d",strlen(ipText));
     if(selectedInput == SERVER_IP) {
         if(strlen(ipText)>=1 && strlen(ipText)<22) {
@@ -241,17 +241,17 @@ void initInputButtons(){
     if(ipInput==NULL){
         SDL_ExitWithError("ERROR ALLOCATING IP INPUT BUTTON");
     }
-    ipInput->beginX = 100;
-    ipInput->beginY = 90;
-    ipInput->endX = 400;
-    ipInput->endY = 140;
+    ipInput->beginX = 250;
+    ipInput->beginY = 150;
+    ipInput->endX = 550;
+    ipInput->endY = 200;
 
     portInput = malloc(sizeof(Button));
     if(portInput==NULL){
         SDL_ExitWithError("ERROR ALLOCATING PORT INPUT BUTTON");
     }
-    portInput->beginX = 100;
+    portInput->beginX = 250;
     portInput->beginY = 250;
-    portInput->endX = 400;
+    portInput->endX = 550;
     portInput->endY = 300;
 }

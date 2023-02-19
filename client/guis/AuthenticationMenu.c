@@ -17,26 +17,22 @@ typedef struct {
 } ConfigurationAuth;
 
 void authenticationDisplayConfig(SDL_Renderer * renderer, char * usernameText, char * passwordText, Input selectedInput);
-void str_to_uint16(const char *str, uint16_t *res);
+void auth_str_to_uint16(const char *str, uint16_t *res);
 void initAuthenticationInputButtons();
 void authenticationSaveAll(char * ip, char * port, char * username, char * password);
 
-SDL_bool * settingsMenuRunning = NULL;
+SDL_bool * authMenuRunning = NULL;
 
 Button * usernameInput;
 
 Button * passwordInput;
 
-void login(){
-
-}
-
-void settingsMenu(SDL_Renderer * rendererMenu){
-    settingsMenuRunning = malloc(sizeof(SDL_bool));
-    if(settingsMenuRunning==NULL){
+void authenticationMenu(SDL_Renderer * rendererMenu){
+    authMenuRunning = malloc(sizeof(SDL_bool));
+    if(authMenuRunning==NULL){
         SDL_ExitWithError("ERROR ALLOCATING SETTINGSMENURUNNING SDLBOOL");
     }
-    *settingsMenuRunning = SDL_TRUE;
+    *authMenuRunning = SDL_TRUE;
 
     Button goBack;
     goBack.beginX = 20;
@@ -107,7 +103,7 @@ void settingsMenu(SDL_Renderer * rendererMenu){
     Input selectedInput = USERNAME;
     authenticationDisplayConfig(rendererMenu, usernameText, passwordText, selectedInput);
 
-    while(*settingsMenuRunning){
+    while(*authMenuRunning){
         SDL_Event event;
         while(SDL_PollEvent(&event)){
             switch (event.type) {
@@ -121,22 +117,21 @@ void settingsMenu(SDL_Renderer * rendererMenu){
                         selectedInput = USERNAME;
                         selectedInputText = usernameText;
                     } else if(x>goBack.beginX && goBack.endX>x && y>goBack.beginY && goBack.endY>y){
-                        *settingsMenuRunning = SDL_FALSE;
+                        *authMenuRunning = SDL_FALSE;
                         loadMainMenu();
                         break;
                     }
                     authenticationDisplayConfig(rendererMenu, usernameText, passwordText, selectedInput);
                     break;
                 case SDL_QUIT:
-                    *settingsMenuRunning = SDL_FALSE;
+                    *authMenuRunning = SDL_FALSE;
                     loadMainMenu();
                     break;
                 case SDL_KEYDOWN:;
                     int length = strlen(selectedInputText);
                     if(event.key.keysym.sym == SDLK_KP_ENTER || event.key.keysym.sym == SDLK_RETURN){
-                        *settingsMenuRunning = SDL_FALSE;
+                        *authMenuRunning = SDL_FALSE;
                         authenticationSaveAll(config.server_ip,config.server_port, usernameText, passwordText);
-                        login();
                         break;
                     } else if(event.key.keysym.sym == SDLK_BACKSPACE){
                         if(length>0){
@@ -237,7 +232,7 @@ void authenticationDisplayConfig(SDL_Renderer * renderer, char * usernameText, c
     updateRenderer(renderer);
 }
 
-void str_to_uint16(const char *str, uint16_t *res) {
+void auth_str_to_uint16(const char *str, uint16_t *res) {
     char *end;
     long val = strtol(str, &end, 10);
     *res = (uint16_t)val;
