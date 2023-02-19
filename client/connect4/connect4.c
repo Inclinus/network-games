@@ -331,7 +331,7 @@ void createSymbolCircle(char symbol, int x, int y){ // fonction de création de 
     int centerX = 50 + x * 100; // centrer l'axe x de la case en fonction de la colonne choisis
     int centerY = 150 + y * 100; // centrer l'axe x de la case en fonction de la colonne choisis
     if(symbol==BLUE){ // jeton du joueur en bleu
-        changeColor(rendererConnect4,0,0,255);
+        changeColor(rendererConnect4,0,122,204);
         createCircle(rendererConnect4,centerX,centerY,30);
     } else if(symbol==RED){ // jetons du joueur en rouge
         changeColor(rendererConnect4,255,0,0);
@@ -341,9 +341,9 @@ void createSymbolCircle(char symbol, int x, int y){ // fonction de création de 
 
 void displayGameBoard(char **game) { // Création du tableau en SDL en créer chaque case et chaque lignes
     SDL_RenderClear(rendererConnect4);
-    changeColor(rendererConnect4, 255, 255, 255); // met la couleur a blanc
+    changeColor(rendererConnect4, 45,45,48); // met la couleur a blanc
     createFilledRectangle(0, 0, 700, 800, rendererConnect4); // Trace un rectangle
-    changeColor(rendererConnect4, 0, 0, 0); // met la couleur a blanc
+    changeColor(rendererConnect4, 0,122,204); // met la couleur a blanc
     createFilledRectangle(0, 100, 700, 5, rendererConnect4);
     createFilledRectangle(0, 795, 700, 5, rendererConnect4);
     createFilledRectangle(0, 100, 5, 700, rendererConnect4);

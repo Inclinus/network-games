@@ -268,9 +268,9 @@ SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py){ // Placage d'
 
 void displayBoard(int **board) { // Affiche le plateau en SDL
     SDL_RenderClear(renderer); // Nettoie le rendu
-    changeColor(renderer, 255, 255, 255); // Met la couleur blanche
+    changeColor(renderer, 45,45,48); // Met la couleur blanche
     createFilledRectangle(0, 0, 600, 700, renderer); // Met un fond blanc
-    changeColor(renderer, 0, 0, 0); // Met la couleur noir
+    changeColor(renderer, 0,122,204); // Met la couleur noir
     createFilledRectangle(0, 295, 600, 10, renderer); // Crée les rectangles de jeu
     createFilledRectangle(0, 495, 600, 10, renderer);
     createFilledRectangle(195, 100, 10, 600, renderer);
