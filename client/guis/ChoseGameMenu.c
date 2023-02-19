@@ -118,13 +118,13 @@ void * choseGameSdlListen(){
                     int x = event.button.x; // récupère les coordonnées de X
                     int y = event.button.y; // récupère les coordonnées de Y
                     if(x>tictactoeButton.beginX && x<tictactoeButton.endX && y<tictactoeButton.endY && y>tictactoeButton.beginY){ // Si les coordonnées sont dans le boutton tictactoe
-                        sendEvent(createEvent(SDL,"TICTACTOE")); // envoie l'évènement 
+                        sendEvent(createEvent(SDL,"TICTACTOE")); // envoie l'évènement TICTACTOE
                     }
-                    if(x>connect4Button.beginX && x<connect4Button.endX && y<connect4Button.endY && y>connect4Button.beginY){
-                        sendEvent(createEvent(SDL,"CONNECT4"));
+                    if(x>connect4Button.beginX && x<connect4Button.endX && y<connect4Button.endY && y>connect4Button.beginY){ // Si les coordonnées sont dans le boutton CONNECT4
+                        sendEvent(createEvent(SDL,"CONNECT4")); // envoie l'évènement CONNECT4
                     }
-                    if(x>goBack.beginX && x<goBack.endX && y<goBack.endY && y>goBack.beginY){
-                        sendEvent(createEvent(SDL,"LEAVE"));
+                    if(x>goBack.beginX && x<goBack.endX && y<goBack.endY && y>goBack.beginY){ // Si les coordonnées sont dans le boutton CONNECT4
+                        sendEvent(createEvent(SDL,"LEAVE")); // envoie l'évènement LEAVE
                     }
                     break;
                 default:
@@ -136,32 +136,32 @@ void * choseGameSdlListen(){
 }
 
 
-void * choseGameNetworkListen() {
-    NG_Event *disconnectEvent = createEvent(NETWORK,"DISCONNECTED");
+void * choseGameNetworkListen() { // Ecoute les évenements NETWORK pour choseGame
+    NG_Event *disconnectEvent = createEvent(NETWORK,"DISCONNECTED"); // Crée l'évènement disconnectEvent
 
-    while(*choseGameRunning){
+    while(*choseGameRunning){ // Tant que le menu tourne
         char data[12];
         memset(data, '\0', sizeof(data));
-        if (recv(*choseGameClientSocket, data, sizeof(data), 0) <= 0) {
-            sendEvent(disconnectEvent);
+        if (recv(*choseGameClientSocket, data, sizeof(data), 0) <= 0) { // Si le paquet est vide, se déconnecte
+            sendEvent(disconnectEvent); // Envoie l'évènement de déconnexion
             break;
-        } else if (strcmp("PING", data) == 0) {
+        } else if (strcmp("PING", data) == 0) { // Si l'évenement est égale à PING
             SDL_Log("[CHOSEGAME NETWORK LISTENER] PING RECEIVED");
-            send(*choseGameClientSocket, "PANG", 4, 0);
+            send(*choseGameClientSocket, "PANG", 4, 0); // Envoie PANG
         } else {
-            NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
+            NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));// Allocation mémoire receivedDataEvent
             if(receivedDataEvent==NULL){
                 SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT");
             }
-            receivedDataEvent->type = NETWORK;
-            unsigned long len = strlen(data);
+            receivedDataEvent->type = NETWORK; // receivedDataEvent type NETWORK
+            unsigned long len = strlen(data); // Prend la longueur de sata
             SDL_Log("[CHOSEGAME NETWORK LISTENER] PACKET RECEIVED - LENGTH: %lu - CONTENT: \"%s\"", len,data);
-            receivedDataEvent->instructions = malloc(sizeof(char)*len);
+            receivedDataEvent->instructions = malloc(sizeof(char)*len); // Instruction allocation mémoire
             if(receivedDataEvent->instructions==NULL){
                 SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT INSTRUCTIONS");
             }
-            strcpy(receivedDataEvent->instructions,data);
-            sendEvent(receivedDataEvent);
+            strcpy(receivedDataEvent->instructions,data); // Met data dans instruction
+            sendEvent(receivedDataEvent); // Envoie le paquet crée
         }
     }
     pthread_exit(NULL);
