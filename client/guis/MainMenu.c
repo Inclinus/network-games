@@ -64,8 +64,9 @@ void loadMainMenu(){
                             // TODO display text IN QUEUE
                         }
                     } else if(strcmp(event->instructions,"STATS")==0){
-                        *mainMenuRunning = SDL_FALSE;
-                        //statisticsMenu(rendererMenu);
+                        //*mainMenuRunning = SDL_FALSE;
+                        SDL_Log("STATS");
+                        send(*mainMenuClientSocket, "STATS", 5, 0);
                     } else if(strcmp(event->instructions,"CREDIT")==0){
                         *mainMenuRunning = SDL_FALSE;
                         creditMenu(rendererMenu);
@@ -84,10 +85,10 @@ void loadMainMenu(){
                         // TODO display text "game found, waiting for choice"
                     } else if(strcmp(event->instructions,"TICTACTOE")==0){
                         *mainMenuRunning = SDL_FALSE;
-                        tictactoe(mainMenuClientSocket);
+                        tictactoe(mainMenuClientSocket,rendererMenu);
                     } else if(strcmp(event->instructions,"NCONNECT4")==0){
                         *mainMenuRunning = SDL_FALSE;
-                        connect4(mainMenuClientSocket);
+                        connect4(mainMenuClientSocket,rendererMenu);
                     } else if(strcmp(event->instructions,"GAMEBREAK")==0){
                         // TODO remove display text game found
                         //      add display text IN QUEUE
@@ -147,6 +148,12 @@ void * networkMenuListen() {
             break;
         } else if (strcmp("PING", data) == 0) {
             SDL_Log("[MAINMENU NETWORK LISTENER] PING RECEIVED");
+        } else if (strcmp("STATS", data) == 0) {
+            SDL_Log("[MAINMENU NETWORK LISTENER] STATS RECEIVED");
+            Stats * stats = malloc(sizeof(Stats));
+            recv(*mainMenuClientSocket, stats, sizeof(Stats), 0);
+            //*mainMenuRunning = SDL_FALSE;
+            statisticsMenu(rendererMenu, stats);
         } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
             if(receivedDataEvent==NULL){
@@ -222,14 +229,6 @@ void displayMenuMain(){
     createFilledRectangle(0,0,WIDTH,HEIGHT,rendererMenu);
 
     createTextZoneCentered(rendererMenu, "Altino", WIDTH/2,50, 255, 255, 255,48);
-
-    Button test;
-    test.beginX = 0;
-    test.beginY = 0;
-    test.endX = 100;
-    test.endY = 150;
-
-    createButton(rendererMenu,test, "BOUTON DE TEST");
 
     createButton(rendererMenu,*choseGameButton, "Choisir une partie");
     createButton(rendererMenu,*statisticsButton,"Statistiques");

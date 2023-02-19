@@ -122,10 +122,6 @@ int connectUser(MYSQL *con, char *username, char *password) {
     }
 }
 
-char * getUsernameConnected() {
-    return usernameConnected;
-}
-
 // action = 0 -> nbWinTictactoe
 // action = 1 -> nbLooseTictactoe
 // action = 2 -> nbDrawTictactoe

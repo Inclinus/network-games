@@ -39,12 +39,11 @@ int * tictactoeClientSocket;
 char * tictactoeDisplayInfo;
 char * tictactoeDisplayFeedback;
 
-int tictactoe(int * socketClient) {
+int tictactoe(int * socketClient, SDL_Renderer * rendererMenu) {
     clearQueues();
     tictactoeClientSocket = socketClient;
-    initSDL();
-    window = SDL_CreateWindow("MORPION", 50, 50, 600, 700, 0); // Création de la fenêtre
-    renderer = SDL_CreateRenderer(window, -1, 0); // Création d rendu
+    //window = SDL_CreateWindow("MORPION", 50, 50, 600, 700, 0); // Création de la fenêtre
+    renderer = rendererMenu;
 
     pthread_t network_listener; // Création d'un thread pour les évenement NETWORK
     pthread_create(&network_listener, NULL, networkListen, NULL);
@@ -146,8 +145,6 @@ int tictactoe(int * socketClient) {
     if(!quitForcedByPlayer){
         sleep(5);
     }
-    quitSDL(renderer, window); // Quitte le fenêtre et le le rendu SDL
-    close(*socketClient); // Ferme le socket
     return 0;
 }
 
@@ -163,10 +160,10 @@ void *sdlListen() { // Ecoute des évenements SDL
                     program_launched = SDL_FALSE;
                     break;
                 case SDL_MOUSEBUTTONDOWN: // Event SDL_MOUSEBUTTONDOWN
-                    SDL_Log("SDL BTN DOWN");
-                    int x = calculateLinePos(event.button.x); // Calcul la ligne en fonction de l'axe X du clique
-                    int y = calculateColumnPos(event.button.y); // Calcul la ligne en fonction de l'axe Y du clique
-                    if(y!=-1) { // Si Y est possible
+                    if(event.button.x > 179 && event.button.x < 541 && event.button.y > 119 && event.button.y < 480){
+                        SDL_Log("SDL BTN DOWN");
+                        int x = calculateLinePos(event.button.x); // Calcul la ligne en fonction de l'axe X du clique
+                        int y = calculateColumnPos(event.button.y); // Calcul la ligne en fonction de l'axe Y du clique
                         NG_Event *buttonDown = malloc(sizeof(NG_Event)); // Création de l'évenemnt buttonDown
                         if (buttonDown == NULL) { // Erreur si il est NULL
                             SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWNEVENT");
@@ -178,6 +175,7 @@ void *sdlListen() { // Ecoute des évenements SDL
                         }
                         sprintf(buttonDown->instructions, "%d-%d", x, y); // Met en forme les coordonnées
                         sendEvent(buttonDown); // Envoie les coordonnées au serveur
+
                     }
                     break;
                 default:
@@ -280,14 +278,29 @@ SDL_bool tryPlace(SDL_bool isEnemy, int ** board, int px, int py){ // Placage d'
 }
 
 void displayBoard(int **board) { // Affiche le plateau en SDL
+
+    // WIDTH : 720
+    // HEIGHT : 480
+
+    // RECTANGLE DE JEU =
+    //  BEGINX = 180
+    //  BEGINY = 120
+    //  ENDX = 540
+    //  ENDY = 480
+
+
     SDL_RenderClear(renderer); // Nettoie le rendu
     changeColor(renderer, 45,45,48); // Met la couleur blanche
     createFilledRectangle(0, 0, 600, 700, renderer); // Met un fond blanc
+
+    changeColor(renderer, 45,95,48); // Met la couleur du fond de jeu
+    createFilledRectangle(180, 120, 360, 360, renderer); // Crée le fond de jeu
+
     changeColor(renderer, 0,122,204); // Met la couleur noir
-    createFilledRectangle(0, 295, 600, 10, renderer); // Crée les rectangles de jeu
-    createFilledRectangle(0, 495, 600, 10, renderer);
-    createFilledRectangle(195, 100, 10, 600, renderer);
-    createFilledRectangle(395, 100, 10, 600, renderer);
+    createFilledRectangle(180, 235, 360, 10, renderer); // Crée les délimitations de jeu
+    createFilledRectangle(180, 355, 360, 10, renderer);
+    createFilledRectangle(295, 120, 10, 360, renderer);
+    createFilledRectangle(415, 120, 10, 360, renderer);
 
     if(tictactoeDisplayInfo!=NULL){ // Affiche le texte si displayInfo à une valeur
         createTextZone(renderer,tictactoeDisplayInfo,200,10,0,150,0);
@@ -314,21 +327,27 @@ void createSymbol(int symbol, int x, int y){ // Crée le symbole en SDL
      * 97-290   290-290   502-290
      * 97-502   290-502   502-502
      */
-    int centerX = 97 + x * (502 - 97) / 2; // Définie le centre X de la case
-    int centerY = 197 + y * (502 - 97) / 2; // Définie le centre Y de la case
+
+    /**
+     * 240-180  360-180  480-180
+     * 240-300  360-300  480-300
+     * 240-420  360-420  480-420
+     */
+    int centerX = 240 + x * 120; // Définie le centre X de la case
+    int centerY = 180 + y * 120; // Définie le centre Y de la case
     if(symbol==1){ // Le symbole à mettre est un rond
         changeColor(renderer,0,0,255); // Choisis la couleur
-        createCircle(renderer,centerX,centerY,30); // Crée le cercle
+        createCircle(renderer,centerX,centerY,15); // Crée le cercle
     } else if(symbol==2){ // Le symbole à mettre est une croix
         changeColor(renderer,255,0,0); // Changement de couleur
-        SDL_RenderDrawLine(renderer,centerX-40,centerY-40,centerX+40,centerY+40); // Crée la croix
+        SDL_RenderDrawLine(renderer,centerX-20,centerY-20,centerX+20,centerY+20); // Crée la croix
     }
 }
 
 int calculateLinePos(Sint32 x){ // Trouve la colonne choisis en SDL grace au coordonnées X
-    if(x>405){
+    if(x>420){
         return 2;
-    } else if(x<195){
+    } else if(x<300){
         return 0;
     } else {
         return 1;
@@ -336,14 +355,12 @@ int calculateLinePos(Sint32 x){ // Trouve la colonne choisis en SDL grace au coo
 }
 
 int calculateColumnPos(Sint32 y){// Trouve la ligne choisis en SDL grace au coordonnées Y
-    if(y>505){
+    if(y>360){
         return 2;
-    } else if(y<295 && y>100){
+    } else if(y<240){
         return 0;
-    } else if(y>295){
-        return 1;
     } else {
-        return -1;
+        return 1;
     }
 }
 
