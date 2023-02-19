@@ -40,16 +40,10 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){ // Fonction 
                     if(strcmp(event->instructions, "LEAVE") == 0){ // Si l'instruction est LEAVE
                         send(*choseGameClientSocket, "LEAVEGAME", 9, 0); // Envoie une déconnexion au serveur
                         *choseGameRunning = SDL_FALSE; // Fin de la boucle
-                        pthread_cancel(network_thread); // Ferme le thread NETWORK
-                        pthread_cancel(sdl_thread); // Ferme le thread SDL
                         loadMainMenu(); // Renvoie le menu principale
                     } else if(strcmp(event->instructions, "TICTACTOE") == 0){ // Si l'instruction est TICTACTOE
                         send(*choseGameClientSocket, "TICTACTOE", 9, 0); // Envoie le choix du jeu au serveur
                         *choseGameRunning = SDL_FALSE; // Le menu n'est plus actif
-                        // TODO here, fix that bug, test clients
-                        //      client of host is not launching
-                        pthread_cancel(network_thread);
-                        pthread_cancel(sdl_thread);
                         loadMainMenu();
                     } else if(strcmp(event->instructions, "TICTACTOE") == 0){
                         send(*choseGameClientSocket, "TICTACTOE", 9, 0);
