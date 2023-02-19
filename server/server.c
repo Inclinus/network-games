@@ -93,7 +93,7 @@ void * login(void * loginargs) {
 //        printf("RECU : %s\n", buffer_password);
 //
 //        if (strcmp(respons, "LOGINCLI") == 0) {
-//            if (checkUser(con, buffer_login, buffer_password) == 1) {
+//            if (connectUser(con, buffer_login, buffer_password) == 1) {
 //                printf("L'utilisateur existe et le mot de passe sont correct\n");
 //                send(socketClient, "OK", 2, 0);
 //                flag = 0;
@@ -197,25 +197,36 @@ int main() {
     int GameId = 0;
 
     // TEST BDD
-//    MYSQL *con = connectBdd();
-//
-//    if (con == NULL) {
-//        exit(1);
-//    }
-//
+    MYSQL *con = connectBdd();
+
+    if (con == NULL) {
+        exit(1);
+    }
+
 //    if (createUser(con, "tibo", "mdpdeouf") == 0) {
 //        printf("L'utilisateur a bien été créer\n");
 //    } else {
 //        printf("L'utilisateur n'a pas pu être créer\n");
 //    }
 
-//    if(checkUser(con, "tibo", "mdpdeouf") == 0) {
+//    if(connectUser(con, "tibo", "mdpdeouf") == 1) {
 //        printf("L'utilisateur existe et le mot de passe sont correct\n");
+//
+//        addStats(con, getUsernameConnected(), 2);
 //    } else {
 //        printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
 //    }
 
-    //closeBdd(con);
+//    Stats test = getStats(con, "tibo");
+//    printf("STATS : %d\n", test.nbDrawConnect4);
+//
+//    addStats(con,"tibo",1);
+
+    closeBdd(con);
+
+    int wait;
+    scanf("%d", &wait);
+
     // FIN TEST BDD
 
     args.socketPlayer1 = 0;
