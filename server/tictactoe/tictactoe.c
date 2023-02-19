@@ -70,6 +70,19 @@ int winCondition(int ** board,int verifNumber){
 
 int tictactoe(int socketPlayer1, int socketPlayer2) {
 
+    char buffer1[5];
+    char buffer2[5];
+    while (strcmp(buffer1, "PONG") != 0 && strcmp(buffer2, "PONG") != 0) {
+        printf("SEND PING !!!\n");
+        fflush(stdout);
+        send(socketPlayer1, "PING", 4, 0);
+        send(socketPlayer2, "PING", 4, 0);
+        recv(socketPlayer1, buffer1, 4, 0);
+        printf("buffer1 : %s", buffer1);
+        recv(socketPlayer2, buffer2, 4, 0);
+        printf("buffer2 : %s", buffer2);
+    }
+
     printf("PARTIE COMMENCE !\n");
 
     int ** board;

@@ -38,8 +38,8 @@ void * startGame(void *args){
     }
     printf("Le joueur 2 est le socket %d\n",((GameArgs *)args)->socketPlayer2);
 
-    send(myargs->socketPlayer1, "STARTLOBBYH", 11, 0);
-    send(myargs->socketPlayer2, "STARTLOBBYJ", 11, 0);
+    send(myargs->socketPlayer1, "LOBBYHOST", 9, 0);
+    send(myargs->socketPlayer2, "LOBBYJOUR", 9, 0);
 
     char choix[11];
     recv(myargs->socketPlayer1, choix, sizeof(choix), 0);
@@ -61,7 +61,8 @@ void * startGame(void *args){
     return 0;
 }
 
-void * login(void * loginargs){;
+void * login(void * loginargs) {
+    ;
 
     struct LoginArgs *myloginargs;
     myloginargs = (struct LoginArgs *) loginargs;
@@ -76,89 +77,90 @@ void * login(void * loginargs){;
 
     int socketClient = myloginargs->socketClient;
 
-    while(flag) {
-        printf("En attente de la demande de login ...\n");
-        char respons[9];
-        recv(socketClient, respons, sizeof(respons), 0);
-        respons[8] = '\0';
-        printf("RECU : %s\n", respons);
+    //while (flag) {
+//        printf("En attente de la demande de login ...\n");
+//        char respons[9];
+//        recv(socketClient, respons, sizeof(respons), 0);
+//        respons[8] = '\0';
+//        printf("RECU : %s\n", respons);
+//
+//        char buffer_login[25];
+//        char buffer_password[25];
+//        recv(socketClient, buffer_login, sizeof(buffer_login), 0);
+//        printf("RECU : %s\n", buffer_login);
+//        recv(socketClient, buffer_password, sizeof(buffer_password), 0);
+//        printf("RECU : %s\n", buffer_password);
+//
+//        if (strcmp(respons, "LOGINCLI") == 0) {
+//            if (checkUser(con, buffer_login, buffer_password) == 1) {
+//                printf("L'utilisateur existe et le mot de passe sont correct\n");
+//                send(socketClient, "OK", 2, 0);
+//                flag = 0;
+//            } else {
+//                printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
+//                send(socketClient, "KO", 2, 0);
+//                flag = 1;
+//            }
+//        } else if (strcmp(respons, "REGISTER") == 0){
+//            if (createUser(con, buffer_login, buffer_password) == 0) {
+//                printf("L'utilisateur a bien été créer\n");
+//                send(socketClient, "OK", 2, 0);
+//                flag = 0;
+//            } else {
+//                printf("L'utilisateur n'a pas pu être créer\n");
+//                send(socketClient, "KO", 2, 0);
+//                flag = 1;
+//            }
+//        } else {
+//            printf("WTF THIS PACKET !\n");
+//            exit(EXIT_FAILURE);
+//        }
+//    }
+        char choix[6];
+        // QUEUE
+        // STATS
+        recv(socketClient, choix, sizeof(choix), 0);
+        choix[5] = '\0';
+        printf("RECU AFTER AUTH 2 : %s\n", choix);
 
-        char buffer_login[25];
-        char buffer_password[25];
-        recv(socketClient, buffer_login, sizeof(buffer_login), 0);
-        printf("RECU : %s\n", buffer_login);
-        recv(socketClient, buffer_password, sizeof(buffer_password), 0);
-        printf("RECU : %s\n", buffer_password);
-
-        if (strcmp(respons, "LOGINCLI") == 0) {
-            if (checkUser(con, buffer_login, buffer_password) == 1) {
-                printf("L'utilisateur existe et le mot de passe sont correct\n");
-                send(socketClient, "OK", 2, 0);
-                flag = 0;
-            } else {
-                printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
-                send(socketClient, "KO", 2, 0);
-                flag = 1;
-            }
-        } else if (strcmp(respons, "REGISTER") == 0){
-            if (createUser(con, buffer_login, buffer_password) == 0) {
-                printf("L'utilisateur a bien été créer\n");
-                send(socketClient, "OK", 2, 0);
-                flag = 0;
-            } else {
-                printf("L'utilisateur n'a pas pu être créer\n");
-                send(socketClient, "KO", 2, 0);
-                flag = 1;
-            }
-        } else {
-            printf("WTF THIS PACKET !\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-    char choix[6];
-    // QUEUE
-    // STATS
-    recv(socketClient, choix, sizeof(choix), 0);
-    choix[5] = '\0';
-    printf("RECU AFTER AUTH : %s\n", choix);
-    if (strcmp(choix, "QUEUE") == 0) {
-        if (myloginargs->nbJoueur%2 == 0) {
+        if (strcmp(choix, "QUEUE") == 0) {
+            if (myloginargs->nbJoueur % 2 == 0) {
 //            printf("CREATION DE LOBBY !\n");
 //            args.socketPlayer1 = socketClient;
 //            args.socketPlayer2 = 0;
 //            args.GameId = 1;
 //            pthread_t threadGame;
 //            pthread_create(&threadGame, NULL, startGame, (void *)&args);
-            if (args.socketPlayer1 == 0) {
-                printf("CREATION DE LOBBY !\n");
-                args.socketPlayer1 = socketClient;
-                args.socketPlayer2 = 0;
-                args.GameId = 1;
-                pthread_t threadGame;
-                pthread_create(&threadGame, NULL, startGame, (void *)&args);
-            } else {
-                printf("JOIN DE LOBBY !\n");
-                args.socketPlayer2 = socketClient;
+                if (args.socketPlayer1 == 0) {
+                    printf("CREATION DE LOBBY !\n");
+                    args.socketPlayer1 = socketClient;
+                    args.socketPlayer2 = 0;
+                    args.GameId = 1;
+                    pthread_t threadGame;
+                    pthread_create(&threadGame, NULL, startGame, (void *) &args);
+                } else {
+                    printf("JOIN DE LOBBY !\n");
+                    args.socketPlayer2 = socketClient;
+                }
+            } else if (myloginargs->nbJoueur % 2 == 1) {
+                if (args.socketPlayer1 == 0) {
+                    printf("CREATION DE LOBBY !\n");
+                    args.socketPlayer1 = socketClient;
+                    args.socketPlayer2 = 0;
+                    args.GameId = 1;
+                    pthread_t threadGame;
+                    pthread_create(&threadGame, NULL, startGame, (void *) &args);
+                } else {
+                    printf("JOIN DE LOBBY !\n");
+                    args.socketPlayer2 = socketClient;
+                }
             }
-        } else if (myloginargs->nbJoueur%2 == 1) {
-            if (args.socketPlayer1 == 0) {
-                printf("CREATION DE LOBBY !\n");
-                args.socketPlayer1 = socketClient;
-                args.socketPlayer2 = 0;
-                args.GameId = 1;
-                pthread_t threadGame;
-                pthread_create(&threadGame, NULL, startGame, (void *)&args);
-            } else {
-                printf("JOIN DE LOBBY !\n");
-                args.socketPlayer2 = socketClient;
-            }
+        } else if (strcmp(choix, "STATS") == 0) {
+            // TODO STATS
+        } else {
+            printf("WTF THIS PACKET !\n");
+            exit(EXIT_FAILURE);
         }
-    } else if (strcmp(choix, "STATS") == 0) {
-        // TODO STATS
-    } else {
-        printf("WTF THIS PACKET !\n");
-        exit(EXIT_FAILURE);
-    }
 }
 
 int main() {
@@ -220,10 +222,10 @@ int main() {
         }
         printf("CONNEXION ACCEPTER DU CLIENT NUMERO :  %d\n", nbJoueur);
 
-        char respons[6];
-        recv(socketClient[nbJoueur], respons, 5, 0);
-        respons[5] = '\0';
-        printf("RECU1 : %s\n", respons);
+//        char respons[6];
+//        recv(socketClient[nbJoueur], respons, 5, 0);
+//        respons[5] = '\0';
+//        printf("RECU1 : %s\n", respons);
 
         LoginArgs * args2 = malloc(sizeof(LoginArgs));
         if (args2 == NULL) {
@@ -234,10 +236,11 @@ int main() {
         args2->nbJoueur = nbJoueur;
 
         pthread_t thread_id;
-        if (strcmp(respons, "LOGIN") == 0) {
-            pthread_create(&thread_id, NULL, (void*)login, args2);
-            //pthread_create(&thread_id, NULL, (void*)login, &args2);
-        }
+        pthread_create(&thread_id, NULL, (void*)login, args2);
+//        if (strcmp(respons, "LOGIN") == 0) {
+//            pthread_create(&thread_id, NULL, (void*)login, args2);
+//            //pthread_create(&thread_id, NULL, (void*)login, &args2);
+//        }
         nbJoueur++;
     }
 

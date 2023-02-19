@@ -224,6 +224,8 @@ void *networkListen() {
                 }
                 sprintf(enemyPosEvent->instructions, "%d-%d", px, py);
                 sendEvent(enemyPosEvent);
+            } else if (strcmp("PING", data) == 0){
+                send(*tictactoeClientSocket, "PONG", 4, 0);
             } else {
                 NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
                 if(receivedDataEvent==NULL){

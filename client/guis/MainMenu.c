@@ -76,21 +76,15 @@ void loadMainMenu(){
                     if(strcmp(event->instructions,"LOBBYHOST")==0){
                         *isInQueue = SDL_FALSE;
                         *mainMenuRunning = SDL_FALSE;
-                        pthread_cancel(network_thread);
-                        pthread_cancel(sdl_thread);
                         choseGameMenu(rendererMenu,mainMenuClientSocket);
                     } else if(strcmp(event->instructions,"LOBBYJOUR")==0){
                         *isInQueue = SDL_FALSE;
                         // TODO display text "game found, waiting for choice"
                     } else if(strcmp(event->instructions,"TICTACTOE")==0){
                         *mainMenuRunning = SDL_FALSE;
-                        pthread_cancel(network_thread);
-                        pthread_cancel(sdl_thread);
                         tictactoe(mainMenuClientSocket);
                     } else if(strcmp(event->instructions,"NCONNECT4")==0){
                         *mainMenuRunning = SDL_FALSE;
-                        pthread_cancel(network_thread);
-                        pthread_cancel(sdl_thread);
                         connect4(mainMenuClientSocket);
                     } else if(strcmp(event->instructions,"GAMEBREAK")==0){
                         // TODO remove display text game found
@@ -146,10 +140,13 @@ void * networkMenuListen() {
     while(*mainMenuRunning){
         char data[10];
         memset(data, '\0', sizeof(data));
-        if (recv(*mainMenuClientSocket, data, sizeof(data), 0) <= 0) {
+        if (recv(*mainMenuClientSocket, data, sizeof(data)-1, 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
-        }else {
+        } else if (strcmp("PING", data) == 0) {
+            SDL_Log("[MAINMENU NETWORK LISTENER] PING RECEIVED");
+            send(*mainMenuClientSocket, "PANG", 4, 0);
+        } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
             if(receivedDataEvent==NULL){
                 SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT");

@@ -52,7 +52,7 @@ void SDL_ExitWithError(const char *message){
 
 SDL_Rect * createTextZone(SDL_Renderer * renderer, const char * text, int posX, int posY, Uint8 red, Uint8 green, Uint8 blue){
 
-    TTF_Font * font = TTF_OpenFont("/home/noam/Bureau/C/network-games/assets/Roboto-Regular.ttf", 24);
+    TTF_Font * font = TTF_OpenFont("/home/kyato/CLionProjects/network-games/assets/Roboto-Regular.ttf", 24);
     if(font==NULL){
         SDL_ExitWithError("FONT NULL");
     }
@@ -97,7 +97,7 @@ void createCircle(SDL_Renderer * renderer, int x, int y, int radius)
 
 SDL_Rect * createTextZoneCentered(SDL_Renderer * renderer, const char * text,int posX, int posY, Uint8 red, Uint8 green, Uint8 blue, int size){
 
-    TTF_Font * font = TTF_OpenFont("/home/noam/Bureau/C/network-games/assets/Roboto-Regular.ttf", size);
+    TTF_Font * font = TTF_OpenFont("/home/kyato/CLionProjects/network-games/assets/Roboto-Regular.ttf", size);
     if(font==NULL){
         SDL_ExitWithError("FONT NULL");
     }

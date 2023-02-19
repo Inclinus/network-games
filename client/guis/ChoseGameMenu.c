@@ -145,7 +145,10 @@ void * choseGameNetworkListen() {
         if (recv(*choseGameClientSocket, data, sizeof(data), 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
-        }else {
+        } else if (strcmp("PING", data) == 0) {
+            SDL_Log("[CHOSEGAME NETWORK LISTENER] PING RECEIVED");
+            send(*choseGameClientSocket, "PANG", 4, 0);
+        } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
             if(receivedDataEvent==NULL){
                 SDL_ExitWithError("ERROR ALLOCATING RECEIVEDDATAEVENT");
