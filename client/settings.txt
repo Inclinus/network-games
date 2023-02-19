@@ -1,4 +1,2 @@
-server_ip=localhost
-server_port=4444
-username=noam
-password=noamlebg
+server_ip=localhosteeeeee
+server_port=44445
