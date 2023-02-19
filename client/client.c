@@ -9,9 +9,46 @@
 #include "tictactoe/tictactoe.h"
 #include "../events/EventManager.h"
 #include "connect4/connect4.h"
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL.h>
+#include "../sdl-utils/SDLUtils.h"
+#include "guis/MainMenu.h"
+#include <SDL2/SDL_ttf.h>
+#include <pthread.h>
 #include <SDL2/SDL.h>
 #include <errno.h>
 #include "../sdl-utils/SDLUtils.h"
+
+SDL_bool clientRunning = SDL_TRUE;
+int * clientSocket;
+
+// action = 1 -> login
+// action = 2 -> register
+int login(int * socketClient, int action){
+    if (action == 1) {
+        send(*socketClient, "LOGINCLI", 8, 0);
+    } else if (action == 2) {
+        send(*socketClient, "REGISTER", 8, 0);
+    }
+    char buffer[25];
+    printf("Quel est votre pseudo : \n");
+    scanf("%s", buffer);
+    send(*socketClient, buffer, sizeof(buffer), 0);
+    printf("Quel est votre mot de passe : \n");
+    scanf("%s", buffer);
+    send(*socketClient, buffer, sizeof(buffer), 0);
+    char result[3];
+    recv(*socketClient, result, sizeof(result), 0);
+    result[2] = '\0';
+    printf("RECU : %s\n", result);
+    if(strcmp(result, "OK") == 0){
+        printf("OK !\n");
+        return 1;
+    }else{
+        printf("NOK !\n");
+        return 0;
+    }
+}
 
 void displayConfig(SDL_Renderer * renderer, char * text){
     changeColor(renderer,255,255,255);
@@ -158,8 +195,8 @@ int main() {
     // projetc.neo-serv.fr -> 92.222.131.57
 
     struct hostent *ipserveur;
-    ipserveur = gethostbyname("localhost");
-    //ipserveur = gethostbyname("projetc.neo-serv.fr");
+    //ipserveur = gethostbyname("localhost");
+    ipserveur = gethostbyname("projetc.neo-serv.fr");
 
     if (ipserveur == NULL) {
         printf("ERREUR, l'host n'a pas été trouver\n");
@@ -176,32 +213,35 @@ int main() {
         exit(1);
     }
     printf("[DEBUG] CONNECTER !\n");
+    clientSocket = &socketClient;
 
     printf("En attente d'adversaire ...\n");
 
-    char data[8];
-    recv(socketClient, data, 8, 0);
-    printf("[DEBUG] RECU : %s\n", data);
-    if (strcmp(data, "NICKNAME")) {
-        printf("Quel est votre pseudo : \n");
-        scanf("%s", data);
-        send(socketClient, data, sizeof(data), 0);
-    } else {
-        printf("ERREUR DE PROTOCOLE !\n");
-    }
+//    tictactoe(clientSocket);
+//
+//    send(socketClient, "LOGIN", 5, 0);
+//
+//    int action_login;
+//    printf("1 - Se connecter\n 2 - S'inscrire\n");
+//    scanf("%d", &action_login);
+//    if (action_login == 1) {
+//        while (login(&socketClient, 1) == 0);
+//    } else if (action_login == 2) {
+//        login(&socketClient, 2);
+//    } else {
+//        printf("ERREUR DE CHOIX !\n");
+//        exit(1);
+//    }
     // Clear event queues to be sure no events is stucked
     clearQueues();
-    
-    // TODO implement choice of game here
-    //   Utilise le pollevent sdl (comme sur tictactoe) pour détecter un clic de souris
-    //   COmpare la position du clic avec tes boutons et lance en fonction tictactoe ou connect4
-    //   PS : pour l'instant connect4 est une fenêtre vide avec un texte connect 4
 
+    printf("[DEBUG] FIN DE L'AUTHENTIFICATION !\n");
 
-    configServer();
-    //tictactoe(&socketClient);
-    //connect4(&socketClient);
+    initSDLGUIs(&clientRunning,&socketClient);
 
+    while (clientRunning) {
+        loadMainMenu();
+    }
 
     close(socketClient);
 

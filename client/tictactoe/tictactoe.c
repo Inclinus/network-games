@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <SDL2/SDL_render.h>
 #include <SDL2/SDL.h>
 #include <pthread.h>
 #include <regex.h>
@@ -33,13 +32,14 @@ SDL_bool program_launched = SDL_TRUE;
 
 SDL_bool quitForcedByPlayer = SDL_FALSE;
 
-int * clientSocket;
+int * tictactoeClientSocket;
 
 char * tictactoeDisplayInfo;
 char * tictactoeDisplayFeedback;
 
 int tictactoe(int * socketClient) {
-    clientSocket = socketClient;
+    clearQueues();
+    tictactoeClientSocket = socketClient;
     initSDL();
     window = SDL_CreateWindow("MORPION", 50, 50, 600, 700, 0);
     renderer = SDL_CreateRenderer(window, -1, 0);
@@ -201,26 +201,18 @@ void *networkListen() {
     while (program_launched) {
         char data[9];
         memset(data, '\0', sizeof(data));
-        if (recv(*clientSocket, data, 8, 0) <= 0) {
+        if (recv(*tictactoeClientSocket, data, 8, 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
         } else {
             if (strcmp("WAITTURN", data) == 0) {
-                NG_Event *enemyTurnEvent = malloc(sizeof(NG_Event));
-                if(enemyTurnEvent==NULL){
-                    SDL_ExitWithError("ERROR ALLOCATING ENEMYTURNEVENT");
-                }
-                enemyTurnEvent->type = NETWORK;
-                enemyTurnEvent->instructions = malloc(sizeof(char)*10);
-                if(enemyTurnEvent->instructions==NULL){
-                    SDL_ExitWithError("ERROR ALLOCATING ENEMYTURNEVENT INSTRUCTIONS");
-                }
-                enemyTurnEvent->instructions = "ENEMYTURN";
-                sendEvent(enemyTurnEvent);
+                sendEvent(createEvent(NETWORK,"ENEMYTURN"));
                 int px;
                 int py;
-                recv(*clientSocket, &px, sizeof(px), 0);
-                recv(*clientSocket, &py, sizeof(py), 0);
+                recv(*tictactoeClientSocket, &px, sizeof(px), 0);
+                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED [1] - CONTENT: \"%d\"",px);
+                recv(*tictactoeClientSocket, &py, sizeof(py), 0);
+                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED [2] - CONTENT: \"%d\"",py);
                 NG_Event *enemyPosEvent = malloc(sizeof(NG_Event)); // enemyPosEvent = Oxeaf & *enemyPosEvent = NG_EVENT{} &enemyPosEvent = 0xfk
                 if(enemyPosEvent==NULL){
                     SDL_ExitWithError("ERROR ALLOCATING ENEMYPOSEVENT");
@@ -232,6 +224,8 @@ void *networkListen() {
                 }
                 sprintf(enemyPosEvent->instructions, "%d-%d", px, py);
                 sendEvent(enemyPosEvent);
+            } else if (strcmp("PING", data) == 0){
+                send(*tictactoeClientSocket, "PONG", 4, 0);
             } else {
                 NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
                 if(receivedDataEvent==NULL){

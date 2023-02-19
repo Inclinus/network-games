@@ -52,6 +52,7 @@ char * actualDisplayedFeedback;
 int * connect4ClientSocket;
 
 int connect4(int * socketClient) {
+    clearQueues();
     setDisplayedInfo("Bienvenue !");
     connect4ClientSocket = socketClient;
     initSDL();
@@ -140,14 +141,20 @@ int connect4(int * socketClient) {
                     SDL_Log("Vous avez gagné ! \n");
                     setDisplayedInfo("Vous avez gagné !");
                     connect_launched = SDL_FALSE;
+                    pthread_cancel(network_listener);
+                    pthread_cancel(sdl_listener);
                 } else if (strcmp("YOULOSE!", event->instructions) == 0) {
                     SDL_Log("Vous avez perdu ! \n");
                     setDisplayedInfo("Vous avez perdu !");
                     connect_launched = SDL_FALSE;
+                    pthread_cancel(network_listener);
+                    pthread_cancel(sdl_listener);
                 } else if (strcmp("EQUALITY", event->instructions) == 0) {
                     SDL_Log("Personne n'a gagné ! \n");
                     setDisplayedInfo("Personne n'a gagné !");
                     connect_launched = SDL_FALSE;
+                    pthread_cancel(network_listener);
+                    pthread_cancel(sdl_listener);
                 } else {
                     fprintf(stderr,"WTF IS THAT NETWORK EVENT : %s",event->instructions);
                 }
@@ -219,7 +226,9 @@ void *networkListener() {
             sendEvent(disconnectEvent);
             break;
         } else {
-            if (strcmp("WAITTURN", data) == 0) {
+            if (strcmp("PING", data) == 0){
+                send(*connect4ClientSocket, "PONG", 4, 0);
+            } else if (strcmp("WAITTURN", data) == 0) {
                 NG_Event *enemyTurnEvent = malloc(sizeof(NG_Event));
                 if(enemyTurnEvent==NULL){
                     SDL_ExitWithError("ERROR ALLOCATING ENEMYTURN EVENT");
