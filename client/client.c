@@ -287,46 +287,47 @@ int main() {
     }
 
     //addrServer.sin_addr.s_addr = inet_addr("127.0.0.1");
-//    addrServer.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr *)*ipserveur->h_addr_list));
-//    addrServer.sin_family = AF_INET;
-//    addrServer.sin_port = htons(4444);
-//
-//    if (connect(socketClient, (const struct sockaddr *) &addrServer, sizeof(addrServer)) < 0) {
-//        perror("ERREUR DE CONNEXION");
-//        exit(1);
-//    }
-//    printf("[DEBUG] CONNECTER !\n");
-//    clientSocket = &socketClient;
-//
-//    printf("En attente d'adversaire ...\n");
+    addrServer.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr *)*ipserveur->h_addr_list));
+    addrServer.sin_family = AF_INET;
+    addrServer.sin_port = htons(4444);
 
-//    tictactoe(clientSocket);
-//
-//    send(socketClient, "LOGIN", 5, 0);
-//
-//    int action_login;
-//    printf("1 - Se connecter\n 2 - S'inscrire\n");
-//    scanf("%d", &action_login);
-//    if (action_login == 1) {
-//        while (login(&socketClient, 1) == 0);
-//    } else if (action_login == 2) {
-//        login(&socketClient, 2);
-//    } else {
-//        printf("ERREUR DE CHOIX !\n");
-//        exit(1);
-//    }
+    if (connect(socketClient, (const struct sockaddr *) &addrServer, sizeof(addrServer)) < 0) {
+        perror("ERREUR DE CONNEXION");
+        exit(1);
+    }
+    printf("[DEBUG] CONNECTER !\n");
+    clientSocket = &socketClient;
+
+    printf("En attente d'adversaire ...\n");
+
+    tictactoe(clientSocket);
+
+    send(socketClient, "LOGIN", 5, 0);
+
+    int action_login;
+    printf("1 - Se connecter\n 2 - S'inscrire\n");
+    scanf("%d", &action_login);
+    if (action_login == 1) {
+        while (login(&socketClient, 1) == 0);
+    } else if (action_login == 2) {
+        login(&socketClient, 2);
+    } else {
+        printf("ERREUR DE CHOIX !\n");
+        exit(1);
+    }
     // Clear event queues to be sure no events is stucked
     clearQueues();
 
     printf("[DEBUG] FIN DE L'AUTHENTIFICATION !\n");
 
-    configServer();
+    // FIXME add the config GUI
+    //configServer();
 
-//    initSDLGUIs(&clientRunning,&socketClient);
-//
-//    while (clientRunning) {
-//        loadMainMenu();
-//    }
+    initSDLGUIs(&clientRunning,&socketClient);
+
+    while (clientRunning) {
+        loadMainMenu();
+    }
 
     close(socketClient);
 
