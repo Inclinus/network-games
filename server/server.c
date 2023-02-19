@@ -139,6 +139,10 @@ void * login(void * loginargs) {
                 }
         } else if (strcmp(choix, "STATS") == 0) {
             // TODO STATS
+            Stats result = getStats(con, "tibo");
+            printf("nbWinTictactoe : %d", result.nbWinTictactoe);
+            send(socketClient, &result, sizeof(result), 0);
+            printf("STATS ENVOYER !\n");
         } else {
             printf("WTF THIS PACKET !\n");
             exit(EXIT_FAILURE);

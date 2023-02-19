@@ -15,6 +15,16 @@ Button * creditButton;
 Button * quitButton;
 Button * optionButton;
 
+typedef struct Stats {
+    int nbWinTictactoe;
+    int nbLooseTictactoe;
+    int nbDrawTictactoe;
+    int nbWinConnect4;
+    int nbLooseConnect4;
+    int nbDrawConnect4;
+} Stats;
+
+
 void initButtons();
 void * sdlClientListen();
 void displayMenuMain();
@@ -65,6 +75,13 @@ void loadMainMenu(){
                         }
                     } else if(strcmp(event->instructions,"STATS")==0){
                         *mainMenuRunning = SDL_FALSE;
+
+                        SDL_Log("STATS");
+                        send(*mainMenuClientSocket,"STATS",5,0);
+
+                        Stats * stats = malloc(sizeof(Stats));
+                        recv(*mainMenuClientSocket, stats, sizeof(Stats), 0);
+
                         //statisticsMenu(rendererMenu);
                     } else if(strcmp(event->instructions,"CREDIT")==0){
                         *mainMenuRunning = SDL_FALSE;
