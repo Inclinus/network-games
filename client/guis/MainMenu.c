@@ -84,10 +84,10 @@ void loadMainMenu(){
                         // TODO display text "game found, waiting for choice"
                     } else if(strcmp(event->instructions,"TICTACTOE")==0){
                         *mainMenuRunning = SDL_FALSE;
-                        tictactoe(mainMenuClientSocket);
+                        tictactoe(mainMenuClientSocket,rendererMenu);
                     } else if(strcmp(event->instructions,"NCONNECT4")==0){
                         *mainMenuRunning = SDL_FALSE;
-                        connect4(mainMenuClientSocket);
+                        connect4(mainMenuClientSocket,rendererMenu);
                     } else if(strcmp(event->instructions,"GAMEBREAK")==0){
                         // TODO remove display text game found
                         //      add display text IN QUEUE
@@ -222,14 +222,6 @@ void displayMenuMain(){
     createFilledRectangle(0,0,WIDTH,HEIGHT,rendererMenu);
 
     createTextZoneCentered(rendererMenu, "Altino", WIDTH/2,50, 255, 255, 255,48);
-
-    Button test;
-    test.beginX = 0;
-    test.beginY = 0;
-    test.endX = 100;
-    test.endY = 150;
-
-    createButton(rendererMenu,test, "BOUTON DE TEST");
 
     createButton(rendererMenu,*choseGameButton, "Choisir une partie");
     createButton(rendererMenu,*statisticsButton,"Statistiques");

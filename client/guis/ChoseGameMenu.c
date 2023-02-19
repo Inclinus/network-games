@@ -47,13 +47,11 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){
                     } else if(strcmp(event->instructions, "TICTACTOE") == 0){
                         send(*choseGameClientSocket, "TICTACTOE", 9, 0);
                         *choseGameRunning = SDL_FALSE;
-                        // TODO here, fix that bug, test clients
-                        //      client of host is not launching
-                        tictactoe(choseGameClientSocket);
+                        tictactoe(choseGameClientSocket,rendererMenu);
                     } else if(strcmp(event->instructions, "CONNECT4") == 0){
                         send(*choseGameClientSocket, "NCONNECT4", 9, 0);
                         *choseGameRunning = SDL_FALSE;
-                        connect4(choseGameClientSocket);
+                        connect4(choseGameClientSocket,rendererMenu);
                     }
                     break;
                 case NETWORK:

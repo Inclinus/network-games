@@ -35,9 +35,6 @@ int SIZE = 7;
 SDL_Window *windowConnect4 = NULL;
 SDL_Renderer *rendererConnect4 = NULL;
 
-int WINDOW_WIDTH = 700; // Defini la Longeur
-int WINDOW_HEIGHT = 800; // Defini Largeur
-
 char RED = 'R';
 char BLUE = 'B';
 
@@ -51,13 +48,12 @@ char * actualDisplayedFeedback;
 
 int * connect4ClientSocket;
 
-int connect4(int * socketClient) {
+int connect4(int * socketClient, SDL_Renderer * renderer) {
     clearQueues();
     setDisplayedInfo("Bienvenue !");
     connect4ClientSocket = socketClient;
-    initSDL();
-    windowConnect4 = SDL_CreateWindow("CONNECT 4", 50, 50, WINDOW_WIDTH, WINDOW_HEIGHT, 0); // Crée une fenêtre SDL
-    rendererConnect4 = SDL_CreateRenderer(windowConnect4, -1, 0); // Crée un rendu SDL
+
+    rendererConnect4 = renderer;
 
     pthread_t network_listener; // créer un thread pour le network_listener
     pthread_create(&network_listener, NULL, networkListener, NULL);
@@ -161,8 +157,6 @@ int connect4(int * socketClient) {
     if(!connect4QuitForcedByPlayer){
         sleep(10);
     }
-    quitSDL(rendererConnect4, windowConnect4);
-    close(*socketClient);
     return 0;
 }
 
@@ -178,19 +172,21 @@ void *sdlListener() { // Ecoute les évenements SDL afin qu'il puisse faire des 
                     break;
                 case SDL_MOUSEBUTTONDOWN: // en cas de clique
                     ;
-                    int column = calculateBoardColumnPos(event.button.x); // Garde la pose de X en fonction du clique fait sur le SDL
-                    SDL_Log("SDL BTN DOWN");
-                    NG_Event *buttonDown = malloc(sizeof(NG_Event));
-                    if(buttonDown==NULL){
-                        SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWN EVENT");
+                    if(event.button.x > 149 && event.button.x < 571){
+                        int column = calculateBoardColumnPos(event.button.x); // Garde la pose de X en fonction du clique fait sur le SDL
+                        SDL_Log("SDL BTN DOWN");
+                        NG_Event *buttonDown = malloc(sizeof(NG_Event));
+                        if(buttonDown==NULL){
+                            SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWN EVENT");
+                        }
+                        buttonDown->type = SDL;  // Définie le type d'évenement
+                        buttonDown->instructions = malloc(sizeof(char)*11); // Alloue de la mémoire pou l'instruction
+                        if(buttonDown->instructions==NULL){
+                            SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWN INSTRUCTIONS");
+                        }
+                        sprintf(buttonDown->instructions, "POS%d", column);
+                        sendEvent(buttonDown);  // Envoie au serveur l'evenement de click
                     }
-                    buttonDown->type = SDL;  // Définie le type d'évenement
-                    buttonDown->instructions = malloc(sizeof(char)*11); // Alloue de la mémoire pou l'instruction
-                    if(buttonDown->instructions==NULL){
-                        SDL_ExitWithError("ERROR ALLOCATING BUTTONDOWN INSTRUCTIONS");
-                    }
-                    sprintf(buttonDown->instructions, "POS%d", column);
-                    sendEvent(buttonDown);  // Envoie au serveur l'evenement de click
                     break;
                 default:
                     break;
@@ -321,17 +317,17 @@ void debugConnectBoard(char **game) { // Affichage du board en débug
 }
 
 int calculateBoardColumnPos(Sint32 x){ //retourne la hauteur en fonction de la position cliquer sur le SDL
-    if(x>600){
+    if(x>510){
         return 7;
-    } else if(x>500){
+    } else if(x>450){
         return 6;
-    } else if(x>400){
+    } else if(x>390){
         return 5;
-    } else if(x>300){
+    } else if(x>330){
         return 4;
-    } else if(x>200){
+    } else if(x>270){
         return 3;
-    } else if(x>100){
+    } else if(x>210){
         return 2;
     } else {
         return 1;
@@ -339,46 +335,58 @@ int calculateBoardColumnPos(Sint32 x){ //retourne la hauteur en fonction de la p
 }
 
 void createSymbolCircle(char symbol, int x, int y){ // fonction de création de cercle en SDL
-    int centerX = 50 + x * 100; // centrer l'axe x de la case en fonction de la colonne choisis
-    int centerY = 150 + y * 100; // centrer l'axe x de la case en fonction de la colonne choisis
-    if(symbol==BLUE){ // jeton du joueur en bleu
-        changeColor(rendererConnect4,0,122,204);
-        createCircle(rendererConnect4,centerX,centerY,30);
+    int centerX = 180 + x * 60; // centrer l'axe x de la case en fonction de la colonne choisis
+    int centerY = 90 + y * 60; // centrer l'axe x de la case en fonction de la colonne choisis
+    if(symbol==BLUE){ // jeton du joueur en jaune
+        changeColor(rendererConnect4,255,215,0);
+        createCircle(rendererConnect4,centerX,centerY,15);
     } else if(symbol==RED){ // jetons du joueur en rouge
         changeColor(rendererConnect4,255,0,0);
-        createCircle(rendererConnect4,centerX,centerY,30);
+        createCircle(rendererConnect4,centerX,centerY,15);
     }
 }
 
 void displayGameBoard(char **game) { // Création du tableau en SDL en créer chaque case et chaque lignes
+
+    // WIDTH : 720
+    // HEIGHT : 480
+    // BEGINX : 150
+    // BEGINY : 60
+    // ENDX : 570
+    // ENDY : 480
+
     SDL_RenderClear(rendererConnect4);
     changeColor(rendererConnect4, 45,45,48); // met la couleur a blanc
-    createFilledRectangle(0, 0, 700, 800, rendererConnect4); // Trace un rectangle
+    createFilledRectangle(0, 0, 720, 480, rendererConnect4); // Trace un rectangle
+//
+//    changeColor(rendererConnect4, 45,99,48); // met la couleur de fond de jeu
+//    createFilledRectangle(150, 60, 420, 420, rendererConnect4); // Trace le rectangle de jeu
+
     changeColor(rendererConnect4, 0,122,204); // met la couleur a blanc
-    createFilledRectangle(0, 100, 700, 5, rendererConnect4);
-    createFilledRectangle(0, 795, 700, 5, rendererConnect4);
-    createFilledRectangle(0, 100, 5, 700, rendererConnect4);
-    createFilledRectangle(695, 100, 5, 700, rendererConnect4);
+    createFilledRectangle(150, 60, 420, 5, rendererConnect4);
+    createFilledRectangle(150, 475, 420, 5, rendererConnect4);
+    createFilledRectangle(150, 60, 5, 420, rendererConnect4);
+    createFilledRectangle(565, 60, 5, 420, rendererConnect4);
 
-    createFilledRectangle(0, 195, 700, 10, rendererConnect4);
-    createFilledRectangle(0, 295, 700, 10, rendererConnect4);
-    createFilledRectangle(0, 395, 700, 10, rendererConnect4);
-    createFilledRectangle(0, 495, 700, 10, rendererConnect4);
-    createFilledRectangle(0, 595, 700, 10, rendererConnect4);
-    createFilledRectangle(0, 695, 700, 10, rendererConnect4);
+    createFilledRectangle(150, 115, 420, 10, rendererConnect4);
+    createFilledRectangle(150, 175, 420, 10, rendererConnect4);
+    createFilledRectangle(150, 235, 420, 10, rendererConnect4);
+    createFilledRectangle(150, 295, 420, 10, rendererConnect4);
+    createFilledRectangle(150, 355, 420, 10, rendererConnect4);
+    createFilledRectangle(150, 415, 420, 10, rendererConnect4);
 
-    createFilledRectangle(95, 100, 10, 700, rendererConnect4);
-    createFilledRectangle(195, 100, 10, 700, rendererConnect4);
-    createFilledRectangle(295, 100, 10, 700, rendererConnect4);
-    createFilledRectangle(395, 100, 10, 700, rendererConnect4);
-    createFilledRectangle(495, 100, 10, 700, rendererConnect4);
-    createFilledRectangle(595, 100, 10, 700, rendererConnect4);
+    createFilledRectangle(205, 60, 10, 420, rendererConnect4);
+    createFilledRectangle(265, 60, 10, 420, rendererConnect4);
+    createFilledRectangle(325, 60, 10, 420, rendererConnect4);
+    createFilledRectangle(385, 60, 10, 420, rendererConnect4);
+    createFilledRectangle(445, 60, 10, 420, rendererConnect4);
+    createFilledRectangle(505, 60, 10, 420, rendererConnect4);
 
     if(actualDisplayedInfo!=NULL){ //Affiche un text seulement si celui-ci existe
-        createTextZone(rendererConnect4,actualDisplayedInfo,200,10,0,150,0);
+        createTextZone(rendererConnect4,actualDisplayedInfo,200,5,0,150,0);
     }
     if(actualDisplayedFeedback!=NULL){ //Affiche un text seulement si celui-ci existe
-        createTextZone(rendererConnect4,actualDisplayedFeedback,200,50,150,0,0);
+        createTextZone(rendererConnect4,actualDisplayedFeedback,200,35,150,0,0);
     }
 
 
