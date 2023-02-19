@@ -14,6 +14,7 @@ SDL_Renderer * choseGameRenderer = NULL;
 void * choseGameNetworkListen();
 void * choseGameSdlListen();
 
+
 int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){
     clearQueues();
     choseGameRunning = malloc(sizeof(SDL_bool));
@@ -48,14 +49,10 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){
                         *choseGameRunning = SDL_FALSE;
                         // TODO here, fix that bug, test clients
                         //      client of host is not launching
-                        pthread_cancel(network_thread);
-                        pthread_cancel(sdl_thread);
                         tictactoe(choseGameClientSocket);
                     } else if(strcmp(event->instructions, "CONNECT4") == 0){
                         send(*choseGameClientSocket, "NCONNECT4", 9, 0);
                         *choseGameRunning = SDL_FALSE;
-                        pthread_cancel(network_thread);
-                        pthread_cancel(sdl_thread);
                         connect4(choseGameClientSocket);
                     }
                     break;
@@ -138,7 +135,7 @@ void * choseGameSdlListen(){
 
 void * choseGameNetworkListen() {
     NG_Event *disconnectEvent = createEvent(NETWORK,"DISCONNECTED");
-
+    SDL_Log("LAUNCHING NETWORK THREAD CHOSEGAMEMENU");
     while(*choseGameRunning){
         char data[12];
         memset(data, '\0', sizeof(data));
@@ -147,7 +144,6 @@ void * choseGameNetworkListen() {
             break;
         } else if (strcmp("PING", data) == 0) {
             SDL_Log("[CHOSEGAME NETWORK LISTENER] PING RECEIVED");
-            send(*choseGameClientSocket, "PANG", 4, 0);
         } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
             if(receivedDataEvent==NULL){
@@ -164,6 +160,8 @@ void * choseGameNetworkListen() {
             sendEvent(receivedDataEvent);
         }
     }
+    send(*choseGameClientSocket, "DEAD", 4, 0);
+    SDL_Log("EXITING NETWORK THREAD CHOSEGAMEMENU");
     pthread_exit(NULL);
 }
 

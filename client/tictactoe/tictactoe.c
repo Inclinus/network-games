@@ -9,6 +9,8 @@
 #include <regex.h>
 #include "../../sdl-utils/SDLUtils.h"
 #include "../../events/EventManager.h"
+#include "../guis/MainMenu.h"
+#include "../guis/ChoseGameMenu.h"
 
 void displayBoard(int **board);
 
@@ -198,6 +200,19 @@ void *networkListen() { // Ecoute des évenements NETWORK
     }
     disconnectEvent->instructions = "DISCONNECTED"; // Instruction de disconnectEvent
 
+    char startData[6];
+    memset(startData, '\0', sizeof(startData));
+    do{
+        if (recv(*tictactoeClientSocket, startData, 5, 0) <= 0) {
+            sendEvent(disconnectEvent);
+            program_launched = SDL_FALSE;
+            break;
+        } else {
+            if(strcmp("START", startData) != 0)
+                send(*tictactoeClientSocket,"PONG",4,0);
+        }
+    } while(strcmp("START", startData) != 0);
+
     while (program_launched) {
         char data[9];
         memset(data, '\0', sizeof(data));
@@ -210,9 +225,9 @@ void *networkListen() { // Ecoute des évenements NETWORK
                 int px;
                 int py;
                 recv(*tictactoeClientSocket, &px, sizeof(px), 0);
-                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED [1] - CONTENT: \"%d\"",px);
+                SDL_Log("[TICTACTOE NETWORK_LISTENER] PACKET RECEIVED [1] - CONTENT: \"%d\"",px);
                 recv(*tictactoeClientSocket, &py, sizeof(py), 0);
-                SDL_Log("[NETWORK_LISTENER] PACKET RECEIVED [2] - CONTENT: \"%d\"",py);
+                SDL_Log("[TICTACTOE NETWORK_LISTENER] PACKET RECEIVED [2] - CONTENT: \"%d\"",py);
                 NG_Event *enemyPosEvent = malloc(sizeof(NG_Event)); // enemyPosEvent = Oxeaf & *enemyPosEvent = NG_EVENT{} &enemyPosEvent = 0xfk
                 if(enemyPosEvent==NULL){
                     SDL_ExitWithError("ERROR ALLOCATING ENEMYPOSEVENT");
@@ -224,8 +239,6 @@ void *networkListen() { // Ecoute des évenements NETWORK
                 }
                 sprintf(enemyPosEvent->instructions, "%d-%d", px, py);
                 sendEvent(enemyPosEvent);
-            } else if (strcmp("PING", data) == 0){
-                send(*tictactoeClientSocket, "PONG", 4, 0);
             } else {
                 NG_Event *receivedDataEvent = malloc(sizeof(NG_Event)); // Créations de l'évènement receivedDataEvent
                 if(receivedDataEvent==NULL){

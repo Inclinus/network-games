@@ -213,6 +213,19 @@ void *networkListener() { // Permet d'écouter les évenement recu du server
     }
     disconnectEvent->instructions = "DISCONNECTED"; // définie l'instruction pour la déconnection
 
+    char startData[6];
+    memset(startData, '\0', sizeof(startData));
+    do{
+        if (recv(*connect4ClientSocket, startData, 5, 0) <= 0) {
+            sendEvent(disconnectEvent);
+            connect_launched = SDL_FALSE;
+            break;
+        } else {
+            if(strcmp("START", startData) != 0)
+                send(*connect4ClientSocket,"PONG",4,0);
+        }
+    } while(strcmp("START", startData) != 0);
+
     while (connect_launched) {
         char data[9];
         memset(data, '\0', sizeof(data));
@@ -220,9 +233,7 @@ void *networkListener() { // Permet d'écouter les évenement recu du server
             sendEvent(disconnectEvent);
             break;
         } else { // tant que il n'ya pas eu de déconnexion
-            if (strcmp("PING", data) == 0){
-                send(*connect4ClientSocket, "PONG", 4, 0);
-            } else if (strcmp("WAITTURN", data) == 0) {
+            if (strcmp("WAITTURN", data) == 0) {
                 //Création des différents évenements NETWORK
 
                 NG_Event *enemyTurnEvent = malloc(sizeof(NG_Event)); // Evenement du tour adverse

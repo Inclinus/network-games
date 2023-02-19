@@ -58,9 +58,11 @@ void loadMainMenu(){
             switch (event->type) {
                 case SDL:
                     if(strcmp(event->instructions,"CHOSEGAME")==0){
-                        *isInQueue = SDL_TRUE;
-                        send(*mainMenuClientSocket, "QUEUE", 5, 0);
-                        // TODO display text IN QUEUE
+                        if(!*isInQueue){
+                            send(*mainMenuClientSocket, "QUEUE", 5, 0);
+                            *isInQueue = SDL_TRUE;
+                            // TODO display text IN QUEUE
+                        }
                     } else if(strcmp(event->instructions,"STATS")==0){
                         *mainMenuRunning = SDL_FALSE;
                         //statisticsMenu(rendererMenu);
@@ -145,7 +147,6 @@ void * networkMenuListen() {
             break;
         } else if (strcmp("PING", data) == 0) {
             SDL_Log("[MAINMENU NETWORK LISTENER] PING RECEIVED");
-            send(*mainMenuClientSocket, "PANG", 4, 0);
         } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
             if(receivedDataEvent==NULL){
@@ -162,6 +163,7 @@ void * networkMenuListen() {
             sendEvent(receivedDataEvent);
         }
     }
+    send(*mainMenuClientSocket, "DEAD", 4, 0);
     SDL_Log("EXITING NETWORK THREAD MAINMENU");
     pthread_exit(NULL);
 }
