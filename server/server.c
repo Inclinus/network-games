@@ -27,8 +27,7 @@ GameArgs args;
 
 void * login(void * loginargs);
 
-int lobby(int * socketClient);
-
+int lobby(int * socketClient, char * login);
 
 void * startGame(void *args){
     struct GameArgs *myargs;
@@ -86,6 +85,9 @@ void * login(void * loginargs) {
 
     int socketClient = myloginargs->socketClient;
 
+    char buffer_login[25];
+    char buffer_password[25];
+
     while (flag) {
         printf("En attente de la demande de login ...\n");
         char respons[9];
@@ -93,8 +95,6 @@ void * login(void * loginargs) {
         respons[8] = '\0';
         printf("RECU : %s\n", respons);
 
-        char buffer_login[25];
-        char buffer_password[25];
         recv(socketClient, buffer_login, sizeof(buffer_login), 0);
         printf("RECU : %s\n", buffer_login);
         recv(socketClient, buffer_password, sizeof(buffer_password), 0);
@@ -125,13 +125,13 @@ void * login(void * loginargs) {
             exit(EXIT_FAILURE);
         }
     }
-    lobby(&socketClient);
+    lobby(&socketClient, buffer_login);
     closeBdd(con);
 }
 
-int lobby(int * socketClient) {
-
-    while (1) {
+int lobby(int * socketClient, char * login) {
+    int flag = 1;
+    while (flag) {
         char choix[6];
         recv(*socketClient, choix, sizeof(choix), 0);
         choix[5] = '\0';
@@ -154,7 +154,7 @@ int lobby(int * socketClient) {
             // TODO STATS
             send(*socketClient, "STATS", 5, 0);
             MYSQL *con = connectBdd();
-            Stats result = getStats(con, "tibo");
+            Stats result = getStats(con, login);
             closeBdd(con);
             printf("nbWinTictactoe : %d", result.nbWinTictactoe);
             send(*socketClient, &result, sizeof(result), 0);
@@ -163,6 +163,7 @@ int lobby(int * socketClient) {
             printf("WTF THIS PACKET !\n");
             close(*socketClient);
             printf("SOCKET CLOSED !\n");
+            flag = 0;
             //exit(EXIT_FAILURE);
         }
     }

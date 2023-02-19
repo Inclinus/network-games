@@ -20,8 +20,6 @@ int createUser(MYSQL *con, char *username, char *password);
 
 int connectUser(MYSQL *con, char *username, char *password);
 
-char * getUsernameConnected();
-
 Stats getStats(MYSQL *con, char *username);
 
 int addStats(MYSQL *con, char *username, int action);
