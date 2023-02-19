@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <errno.h>
 #include "tictactoe/tictactoe.h"
 #include "connect4/connect4.h"
 
@@ -50,8 +51,15 @@ int main() {
     addrServer.sin_family = AF_INET;
     addrServer.sin_port = htons(4444);
 
+    int yes = 1;
+    // Met l'option "REUSEADDRESS" pour le socket à "1" pour permettre d'éviter une erreur de bind sur le port après un crash
+    if (setsockopt(socketServer, SOL_SOCKET, SO_REUSEADDR,
+                   (void*)&yes, sizeof(yes)) < 0) {
+        printf( "setsockopt() failed.\n %d",errno);
+    }
+
     if (bind(socketServer, (struct sockaddr *)&addrServer, sizeof(addrServer)) < 0) {
-        printf("BIND SOCKET ERREUR !\n");
+        printf("BIND SOCKET ERREUR !\n ERRNO = %d\n",errno);
         return 1;
     }
     printf("BIND SOCKET OK !\n");
