@@ -50,7 +50,66 @@ int login(int * socketClient, int action){
     }
 }
 
+char * getServerIp(){
+    FILE* file;
 
+    file = fopen("client/settings.txt", "r");
+    if (file == NULL) {
+        printf("Failed to open config file.\n ERRNO = %d\n",errno);
+        exit(1);
+    }
+
+    char line[1024];
+    char field_name[124], field_value[124];
+
+    char * serverIp = NULL;
+
+    while (fgets(line, 1024, file) != NULL) {
+        sscanf(line, "%[^=]=%[^\n]", field_name, field_value);
+        if (strcmp(field_name, "server_ip") == 0) {
+            serverIp = malloc(sizeof(char)* strlen(field_value)+1);
+            printf("Server IP: %s\n", field_value);
+            strcpy(serverIp, field_value);
+        }
+    }
+
+    fclose(file);
+
+    return serverIp;
+}
+
+void str_to_uint16(const char *str, uint16_t *res) {
+    char *end;
+    long val = strtol(str, &end, 10);
+    *res = (uint16_t)val;
+}
+
+uint16_t getServerPort(){
+    FILE* file;
+
+    file = fopen("client/settings.txt", "r");
+    if (file == NULL) {
+        printf("Failed to open config file.\n ERRNO = %d\n",errno);
+        exit(1);
+    }
+
+    char line[1024];
+    char field_name[124], field_value[124];
+
+    uint16_t result = 0;
+
+    while (fgets(line, 1024, file) != NULL) {
+        sscanf(line, "%[^=]=%[^\n]", field_name, field_value);
+        if (strcmp(field_name, "server_port") == 0) {
+            printf("Server PORT: %s\n", field_value);
+            str_to_uint16(field_value,&result);
+        }
+    }
+
+    fclose(file);
+
+    return result;
+}
 
 int main() {
     eventManagerInit();
@@ -61,7 +120,8 @@ int main() {
 
     struct hostent *ipserveur;
     //ipserveur = gethostbyname("localhost");
-    ipserveur = gethostbyname("projetc.neo-serv.fr");
+    //ipserveur = gethostbyname("projetc.neo-serv.fr");
+    ipserveur = gethostbyname(getServerIp());
 
     if (ipserveur == NULL) {
         printf("ERREUR, l'host n'a pas été trouver\n");
@@ -71,8 +131,9 @@ int main() {
     //addrServer.sin_addr.s_addr = inet_addr("127.0.0.1");
     addrServer.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr *)*ipserveur->h_addr_list));
     addrServer.sin_family = AF_INET;
-    addrServer.sin_port = htons(4444);
-
+    //addrServer.sin_port = htons(4444);
+    addrServer.sin_port = htons(getServerPort());
+    
     if (connect(socketClient, (const struct sockaddr *) &addrServer, sizeof(addrServer)) < 0) {
         perror("ERREUR DE CONNEXION");
         exit(1);

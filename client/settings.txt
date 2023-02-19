@@ -1,2 +1,4 @@
-server_ip=localhosteeeeee
-server_port=44445
+server_ip=projetc.neo-serv.fr
+server_port=4444
+username=noam
+password=noamlebg
