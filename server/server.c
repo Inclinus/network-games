@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <errno.h>
 #include "tictactoe/tictactoe.h"
 #include "connect4/connect4.h"
 #include "bdd/database.h"
@@ -92,7 +93,7 @@ void * login(void * loginargs) {
 //        printf("RECU : %s\n", buffer_password);
 //
 //        if (strcmp(respons, "LOGINCLI") == 0) {
-//            if (checkUser(con, buffer_login, buffer_password) == 1) {
+//            if (connectUser(con, buffer_login, buffer_password) == 1) {
 //                printf("L'utilisateur existe et le mot de passe sont correct\n");
 //                send(socketClient, "OK", 2, 0);
 //                flag = 0;
@@ -174,8 +175,15 @@ int main() {
     addrServer.sin_family = AF_INET;
     addrServer.sin_port = htons(4444);
 
+    int yes = 1;
+    // Met l'option "REUSEADDRESS" pour le socket à "1" pour permettre d'éviter une erreur de bind sur le port après un crash
+    if (setsockopt(socketServer, SOL_SOCKET, SO_REUSEADDR,
+                   (void*)&yes, sizeof(yes)) < 0) {
+        printf( "setsockopt() failed.\n %d",errno);
+    }
+
     if (bind(socketServer, (struct sockaddr *)&addrServer, sizeof(addrServer)) < 0) {
-        printf("BIND SOCKET ERREUR !\n");
+        printf("BIND SOCKET ERREUR !\n ERRNO = %d\n",errno);
         return 1;
     }
     printf("BIND SOCKET OK !\n");
@@ -189,25 +197,36 @@ int main() {
     int GameId = 0;
 
     // TEST BDD
-//    MYSQL *con = connectBdd();
-//
-//    if (con == NULL) {
-//        exit(1);
-//    }
-//
+    MYSQL *con = connectBdd();
+
+    if (con == NULL) {
+        exit(1);
+    }
+
 //    if (createUser(con, "tibo", "mdpdeouf") == 0) {
 //        printf("L'utilisateur a bien été créer\n");
 //    } else {
 //        printf("L'utilisateur n'a pas pu être créer\n");
 //    }
 
-//    if(checkUser(con, "tibo", "mdpdeouf") == 0) {
+//    if(connectUser(con, "tibo", "mdpdeouf") == 1) {
 //        printf("L'utilisateur existe et le mot de passe sont correct\n");
+//
+//        addStats(con, getUsernameConnected(), 2);
 //    } else {
 //        printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
 //    }
 
-    //closeBdd(con);
+//    Stats test = getStats(con, "tibo");
+//    printf("STATS : %d\n", test.nbDrawConnect4);
+//
+//    addStats(con,"tibo",1);
+
+    closeBdd(con);
+
+    int wait;
+    scanf("%d", &wait);
+
     // FIN TEST BDD
 
     args.socketPlayer1 = 0;

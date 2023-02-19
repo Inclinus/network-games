@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include "../libs/bcrypt/bcrypt.h"
 #include <pwd.h>
+#include <string.h>
+
+char usernameConnected[20];
 
 MYSQL * connectBdd()
 {
@@ -32,6 +35,10 @@ int closeBdd(MYSQL *con)
 }
 
 int createUser(MYSQL *con, char *username, char *password) {
+
+    if (con == NULL || username == NULL) {
+        return 0;
+    }
 
     char salt[BCRYPT_HASHSIZE];
     bcrypt_gensalt(12, salt);
@@ -71,7 +78,12 @@ int createUser(MYSQL *con, char *username, char *password) {
     return 0;
 }
 
-int checkUser(MYSQL *con, char *username, char *password) {
+int connectUser(MYSQL *con, char *username, char *password) {
+
+    if (con == NULL || username == NULL) {
+        return 0;
+    }
+
     char query1[100];
     sprintf(query1, "SELECT COUNT(*) FROM users WHERE login='%s'", username);
     if (mysql_query(con, query1)) {
@@ -100,6 +112,7 @@ int checkUser(MYSQL *con, char *username, char *password) {
     printf("HASH : %s\n", row[0]);
     if(bcrypt_checkpw(password, row[0]) == 0){
         // L'utilisateur existe et le mot de passe est correct
+        strcpy(usernameConnected, username);
         mysql_free_result(res);
         return 1;
     } else {
@@ -107,4 +120,97 @@ int checkUser(MYSQL *con, char *username, char *password) {
         mysql_free_result(res);
         return 0;
     }
+}
+
+char * getUsernameConnected() {
+    return usernameConnected;
+}
+
+// action = 0 -> nbWinTictactoe
+// action = 1 -> nbLooseTictactoe
+// action = 2 -> nbDrawTictactoe
+// action = 3 -> nbWinConnect4
+// action = 4 -> nbLooseConnect4
+// action = 5 -> nbDrawConnect4
+
+int addStats(MYSQL *con, char *username, int action) {
+
+    if (con == NULL || username == NULL) {
+        return 0;
+    }
+
+    char query[100];
+
+    switch (action) {
+        case 0:
+            sprintf(query, "UPDATE users set %s=%s+1 WHERE login='%s'", "nbWinTictactoe", "nbWinTictactoe", username);
+            break;
+        case 1:
+            sprintf(query, "UPDATE users set %s=%s+1 WHERE login='%s'", "nbLooseTictactoe", "nbLooseTictactoe", username);
+            break;
+        case 2:
+            sprintf(query, "UPDATE users set %s=%s+1 WHERE login='%s'", "nbDrawTictactoe", "nbDrawTictactoe", username);
+            break;
+        case 3:
+            sprintf(query, "UPDATE users set %s=%s+1 WHERE login='%s'", "nbWinConnect4", "nbWinConnect4", username);
+            break;
+        case 4:
+            sprintf(query, "UPDATE users set %s=%s+1 WHERE login='%s'", "nbLooseConnect4", "nbLooseConnect4", username);
+            break;
+        case 5:
+            sprintf(query, "UPDATE users set %s=%s+1 WHERE login='%s'", "nbDrawConnect4", "nbDrawConnect4", username);
+            break;
+    }
+
+    if (mysql_query(con, query)) {
+        fprintf(stderr, "%s\n", mysql_error(con));
+        return 0;
+    }
+
+    return 1;
+}
+
+Stats getStats(MYSQL *con, char *username) {
+
+    if (con == NULL || username == NULL) {
+        //return NULL;
+    }
+
+    char query[200];
+    sprintf(query, "SELECT nbWinTictactoe, nbLooseTictactoe, nbDrawTictactoe, nbWinConnect4, nbLooseConnect4, nbDrawConnect4 FROM users WHERE login='%s'", username);
+    if (mysql_query(con, query)) {
+        fprintf(stderr, "%s\n", mysql_error(con));
+        //return 0;
+    }
+    MYSQL_RES *result = mysql_store_result(con);
+
+    if (result == NULL)
+    {
+        fprintf(stderr, "%s\n", mysql_error(con));
+    }
+
+    int num_rows = mysql_num_rows(result);
+    if (num_rows != 1) {
+        fprintf(stderr, "%s\n", mysql_error(con));
+        mysql_free_result(result);
+        //return 0;
+    }
+    MYSQL_ROW row = mysql_fetch_row(result);
+    if (row == NULL) {
+        fprintf(stderr, "%s\n", mysql_error(con));
+        mysql_free_result(result);
+        //return 0;
+    }
+    Stats stats;
+    stats.nbWinTictactoe = atoi(row[0]);
+    stats.nbLooseTictactoe = atoi(row[1]);
+    stats.nbDrawTictactoe = atoi(row[2]);
+    stats.nbWinConnect4 = atoi(row[3]);
+    stats.nbLooseConnect4 = atoi(row[4]);
+    stats.nbDrawConnect4 = atoi(row[5]);
+
+    //printf("Stats %d", stats.nbDrawConnect4);
+
+    mysql_free_result(result);
+    return stats;
 }
