@@ -168,9 +168,12 @@ int tictactoe(int socketPlayer1, int socketPlayer2) { // fonction principale per
             flag = draw(socketPlayer2,socketPlayer1);
         }
     }
-    free(row); // Free le la 2ème dimension du tableau
-    free(board); // Free le la 1ère dimension du tableau
-
+    for (int i = 0; i < 3; ++i) {// Premier affichage du tableau de jeu
+        for (int y = 0; y < 3; ++y) {
+            free(&board[i][y]);
+        }
+    }
+    free(board);
     return 0;
 }
 

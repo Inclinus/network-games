@@ -52,4 +52,5 @@ void creditMenu(SDL_Renderer * rendererMenu){ // Menu des crédit
             }
         }
     }
+    free(creditMenuRunning);
 }

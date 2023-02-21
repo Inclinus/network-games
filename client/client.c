@@ -121,7 +121,9 @@ int main() {
     struct hostent *ipserveur;
     //ipserveur = gethostbyname("localhost");
     //ipserveur = gethostbyname("projetc.neo-serv.fr");
-    ipserveur = gethostbyname(getServerIp());
+    char *serverIp = getServerIp();
+    ipserveur = gethostbyname(serverIp);
+    free(serverIp);
 
     if (ipserveur == NULL) {
         printf("ERREUR, l'host n'a pas été trouver\n");

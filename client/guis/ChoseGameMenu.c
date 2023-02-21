@@ -66,8 +66,11 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){ // Fonction 
                 default:
                     break;
             }
+            free(event->instructions);
+            free(event);
         }
     }
+    free(choseGameRunning);
 }
 
 
