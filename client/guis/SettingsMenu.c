@@ -174,6 +174,14 @@ void settingsMenu(SDL_Renderer * rendererMenu){
             }
         }
     }
+    free(settingsMenuRunning);
+    free(serverPortText);
+    free(serverIpText);
+    free(config.server_ip);
+    free(config.password);
+    free(config.username);
+    free(portInput);
+    free(ipInput);
 }
 
 void saveAll(char * ip, char * port, char * username, char * password){

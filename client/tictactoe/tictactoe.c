@@ -140,11 +140,20 @@ int tictactoe(int * socketClient, SDL_Renderer * rendererMenu) {
             }
             displayBoard(board);
             setDisplayFeedback(" ");
+            free(event->instructions);
+            free(event);
         }
     }
     if(!quitForcedByPlayer){
         sleep(5);
     }
+    for (int i = 0; i < 3; ++i) { // Création de la 2ème dimension du tableau
+        for (int j = 0; j < 3; ++j) {
+            free(&board[i][j]);
+        }
+    }
+    free(board);
+
     return 0;
 }
 

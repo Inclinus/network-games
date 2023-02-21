@@ -95,4 +95,6 @@ void statisticsMenu(SDL_Renderer * rendererMenu, Stats * stats){
             }
         }
     }
+    free(stats);
+    free(statisticsMenuRunning);
 } 

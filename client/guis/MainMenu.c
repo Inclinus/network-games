@@ -99,6 +99,11 @@ void loadMainMenu(){
             }
         }
     }
+    free(choseGameButton);
+    free(statisticsButton);
+    free(creditButton);
+    free(quitButton);
+    free(optionButton);
 }
 
 void * sdlClientListen(){
