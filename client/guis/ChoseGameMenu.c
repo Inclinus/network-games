@@ -40,17 +40,7 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){ // Fonction 
                     if(strcmp(event->instructions, "LEAVE") == 0){ // Si l'instruction est LEAVE
                         send(*choseGameClientSocket, "LEAVEGAME", 9, 0); // Envoie une déconnexion au serveur
                         *choseGameRunning = SDL_FALSE; // Fin de la boucle
-                        pthread_cancel(network_thread); // Ferme le thread NETWORK
-                        pthread_cancel(sdl_thread); // Ferme le thread SDL
                         loadMainMenu(); // Renvoie le menu principale
-                    } else if(strcmp(event->instructions, "TICTACTOE") == 0){ // Si l'instruction est TICTACTOE
-                        send(*choseGameClientSocket, "TICTACTOE", 9, 0); // Envoie le choix du jeu au serveur
-                        *choseGameRunning = SDL_FALSE; // Le menu n'est plus actif
-                        // TODO here, fix that bug, test clients
-                        //      client of host is not launching
-                        pthread_cancel(network_thread);
-                        pthread_cancel(sdl_thread);
-                        loadMainMenu();
                     } else if(strcmp(event->instructions, "TICTACTOE") == 0){
                         send(*choseGameClientSocket, "TICTACTOE", 9, 0);
                         *choseGameRunning = SDL_FALSE;
@@ -72,6 +62,7 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){ // Fonction 
                 default:
                     break;
             }
+            free(event);
         }
     }
 }
@@ -140,15 +131,16 @@ void * choseGameSdlListen(){
 
 void * choseGameNetworkListen() {
     NG_Event *disconnectEvent = createEvent(NETWORK,"DISCONNECTED");
-
+    SDL_Log("LAUNCHING NETWORK THREAD CHOSEGAME");
     while(*choseGameRunning){
-        char data[12];
+        char data[10];
         memset(data, '\0', sizeof(data));
         if (recv(*choseGameClientSocket, data, sizeof(data), 0) <= 0) { // Si le paquet est vide, se déconnecte
             sendEvent(disconnectEvent); // Envoie l'évènement de déconnexion
             break;
-        } else if (strcmp("PING", data) == 0) { // Si l'évenement est égale à PING
+        } else if (strstr("PING", data) != NULL || strcmp("PINGPING",data) == 0 || strcmp("PING",data) == 0) { // Si l'évenement est égale à PING
             SDL_Log("[CHOSEGAME NETWORK LISTENER] PING RECEIVED");
+            break;
         } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));// Allocation mémoire receivedDataEvent
             if(receivedDataEvent==NULL){

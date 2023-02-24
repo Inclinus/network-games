@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <SDL2/SDL_ttf.h>
 #include <sys/socket.h>
+#include <regex.h>
 #include "../../events/EventManager.h"
 #include "ChoseGameMenu.h"
 #include "SettingsMenu.h"
@@ -29,6 +30,10 @@ SDL_Window * windowMenu = NULL;
 int * mainMenuClientSocket = NULL;
 
 SDL_bool * isInQueue = NULL;
+SDL_bool * gameFound = NULL;
+
+char * inQueueText = NULL;
+char * gameFoundText = NULL;
 
 void loadMainMenu(){
     clearQueues();
@@ -43,6 +48,17 @@ void loadMainMenu(){
         SDL_ExitWithError("ERROR ALLOCATING ISINQUEUE SDLBOOL");
     }
     *isInQueue = SDL_FALSE;
+    gameFound = malloc(sizeof(SDL_bool));
+    if(gameFound==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING GAMEFOUND SDLBOOL");
+    }
+    *gameFound = SDL_FALSE;
+
+    inQueueText = malloc(sizeof(char)*26);
+    inQueueText = "En attente d'un joueur...";
+
+    gameFoundText = malloc(sizeof(char)*50);
+    gameFoundText = "Partie trouvee, en attente de votre adversaire...";
 
     displayMenuMain();
 
@@ -52,18 +68,24 @@ void loadMainMenu(){
     pthread_t network_thread;
     pthread_create(&network_thread, NULL, networkMenuListen, NULL);
 
+    regex_t statsRegex;
+    if (regcomp(&statsRegex, "^[0-9]+-[0-9]+-[0-9]+-[0-9]+-[0-9]+-[0-9]+$", REG_EXTENDED | REG_NOSUB) != 0) {
+        fprintf(stderr, "Error: Could not compile regular expression\n");
+        SDL_Log("Error: Could not compile regular expression\n");
+        SDL_ExitWithError("ERROR LOADING REGEX STATS");
+    }
+
     while(*mainMenuRunning){
         NG_Event * event = NULL;
-        while ((event=listenAllEvents()) != NULL) {
+        while (*mainMenuRunning && (event=listenAllEvents()) != NULL) {
             switch (event->type) {
                 case SDL:
-                    if(strcmp(event->instructions,"CHOSEGAME")==0){
-                        if(!*isInQueue){
+                    if (strcmp(event->instructions, "CHOSEGAME") == 0) {
+                        if (!*isInQueue) {
                             send(*mainMenuClientSocket, "QUEUE", 5, 0);
                             *isInQueue = SDL_TRUE;
-                            // TODO display text IN QUEUE
                         }
-                    } else if(strcmp(event->instructions,"STATS")==0){
+                    } else if (strcmp(event->instructions, "STATS") == 0) {
                         //*mainMenuRunning = SDL_FALSE;
                         SDL_Log("STATS");
                         send(*mainMenuClientSocket, "STATS", 5, 0);
@@ -80,9 +102,15 @@ void loadMainMenu(){
                         *isInQueue = SDL_FALSE;
                         *mainMenuRunning = SDL_FALSE;
                         choseGameMenu(rendererMenu,mainMenuClientSocket);
+                    } else if(regexec(&statsRegex, event->instructions, 0, NULL, 0) == 0) {
+                        SDL_Log("ENTERING STATS MAIN THREAD IF CONDITION");
+                        Stats * stats = malloc(sizeof(Stats));
+                        sscanf(event->instructions, "%d-%d-%d-%d-%d-%d", &(stats->nbWinTictactoe),&(stats->nbLooseTictactoe),&(stats->nbDrawTictactoe),&(stats->nbWinConnect4),&(stats->nbLooseConnect4),&(stats->nbDrawConnect4));
+                        *mainMenuRunning = SDL_FALSE;
+                        statisticsMenu(mainMenuClientSocket,rendererMenu, stats);
                     } else if(strcmp(event->instructions,"LOBBYJOUR")==0){
                         *isInQueue = SDL_FALSE;
-                        // TODO display text "game found, waiting for choice"
+                        *gameFound = SDL_TRUE;
                     } else if(strcmp(event->instructions,"TICTACTOE")==0){
                         *mainMenuRunning = SDL_FALSE;
                         tictactoe(mainMenuClientSocket,rendererMenu);
@@ -90,13 +118,14 @@ void loadMainMenu(){
                         *mainMenuRunning = SDL_FALSE;
                         connect4(mainMenuClientSocket,rendererMenu);
                     } else if(strcmp(event->instructions,"GAMEBREAK")==0){
-                        // TODO remove display text game found
-                        //      add display text IN QUEUE
+                        *isInQueue = SDL_TRUE;
+                        *gameFound = SDL_FALSE;
                     }
                     break;
                 default:
                     break;
             }
+            displayMenuMain();
         }
     }
 }
@@ -105,7 +134,7 @@ void * sdlClientListen(){
     while(*mainMenuRunning){
         SDL_Event event;
 
-        while(SDL_PollEvent(&event)){
+        while(*mainMenuRunning && SDL_PollEvent(&event)){
             switch(event.type){
                 case SDL_QUIT:
                     send(*mainMenuClientSocket,"LEAVEGAME",9,0);
@@ -116,7 +145,12 @@ void * sdlClientListen(){
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>choseGameButton->beginX && x<choseGameButton->endX && y<choseGameButton->endY && y>choseGameButton->beginY){
-                        sendEvent(createEvent(SDL,"CHOSEGAME"));
+                        if(*isInQueue){
+                            *isInQueue = SDL_FALSE;
+                            sendEvent(createEvent(SDL,"LEAVE"));
+                        } else {
+                            sendEvent(createEvent(SDL,"CHOSEGAME"));
+                        }
                     } else if(x>statisticsButton->beginX && x<statisticsButton->endX && y<statisticsButton->endY && y>statisticsButton->beginY){
                         sendEvent(createEvent(SDL,"STATS"));
                     } else if(x>creditButton->beginX && x<creditButton->endX && y<creditButton->endY && y>creditButton->beginY){
@@ -143,17 +177,30 @@ void * networkMenuListen() {
     while(*mainMenuRunning){
         char data[10];
         memset(data, '\0', sizeof(data));
+        if(!*mainMenuRunning) break;
         if (recv(*mainMenuClientSocket, data, sizeof(data)-1, 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
-        } else if (strcmp("PING", data) == 0) {
+        }  else if (strstr("PING", data) != NULL || strcmp("PINGPING",data) == 0 || strcmp("PING",data) == 0) { // Si l'évenement est égale à PING
             SDL_Log("[MAINMENU NETWORK LISTENER] PING RECEIVED");
-        } else if (strcmp("STATS", data) == 0) {
+            break;
+        } else if (strcmp("STAT", data) == 0) {
             SDL_Log("[MAINMENU NETWORK LISTENER] STATS RECEIVED");
             Stats * stats = malloc(sizeof(Stats));
             recv(*mainMenuClientSocket, stats, sizeof(Stats), 0);
-            //*mainMenuRunning = SDL_FALSE;
-            statisticsMenu(rendererMenu, stats);
+            NG_Event *statsEvent = malloc(sizeof(NG_Event));
+            if(statsEvent==NULL){
+                SDL_ExitWithError("ERROR ALLOCATING statsEvent");
+            }
+            statsEvent->type = NETWORK;
+            SDL_Log("[MAINMENU NETWORK LISTENER] PACKET RECEIVED - CONTENT: \"%s\"",data);
+
+            statsEvent->instructions = malloc(sizeof(char)*30);
+            if(statsEvent->instructions==NULL){
+                SDL_ExitWithError("ERROR ALLOCATING statsEvent INSTRUCTIONS");
+            }
+            sprintf(statsEvent->instructions,"%d-%d-%d-%d-%d-%d", stats->nbWinTictactoe,stats->nbLooseTictactoe,stats->nbDrawTictactoe,stats->nbWinConnect4,stats->nbLooseConnect4,stats->nbDrawConnect4);
+            sendEvent(statsEvent);
         } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));
             if(receivedDataEvent==NULL){
@@ -230,7 +277,18 @@ void displayMenuMain(){
 
     createTextZoneCentered(rendererMenu, "Altino", WIDTH/2,50, 255, 255, 255,48);
 
-    createButton(rendererMenu,*choseGameButton, "Choisir une partie");
+    if(*isInQueue){
+        createTextZoneCentered(rendererMenu, inQueueText, 130,HEIGHT-30, 255, 255, 255,24);
+    } else if(*gameFound){
+        createTextZoneCentered(rendererMenu, gameFoundText, 260,HEIGHT-30, 255, 255, 255,24);
+    }
+
+    if(*isInQueue){
+        createButton(rendererMenu,*choseGameButton, "Quitter la file");
+    } else {
+        createButton(rendererMenu,*choseGameButton, "Chercher une partie");
+    }
+
     createButton(rendererMenu,*statisticsButton,"Statistiques");
     createButton(rendererMenu,*creditButton,"Credit");
     createButton(rendererMenu,*quitButton,"Quitter");

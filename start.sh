@@ -27,7 +27,7 @@ fi
 echo -e "${GREEN}[OK]${NC} Les dépendances sont bien installé ou présente sur ce système !"
 
 echo "Compilation du Client ..."
-gcc events/EventManager.c client/client.c client/tictactoe/tictactoe.c client/connect4/connect4.c sdl-utils/SDLUtils.c $(sdl2-config --cflags --libs) -lSDL2_image -lSDL2_ttf -lm -pthread  -o target/client.out
+gcc events/EventManager.c client/client.c client/guis/AuthenticationMenu.c client/guis/ChoseGameMenu.c client/guis/CreditMenu.c client/guis/MainMenu.c client/guis/SettingsMenu.c client/guis/StatisticsMenu.c client/tictactoe/tictactoe.c client/connect4/connect4.c sdl-utils/SDLUtils.c $(sdl2-config --cflags --libs) -lSDL2_image -lSDL2_ttf -lm -pthread  -o target/client.out
 
 echo "Lancement ..."
 ./target/client.out

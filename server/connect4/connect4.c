@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <unistd.h>
 
 int SIZE = 7;
 
@@ -191,6 +192,7 @@ int connect4Server(int socketPlayer1, int socketPlayer2) { // Partie serveur du 
             char buffer1[5];
             char buffer2[5];
             send(socketPlayer1, "PING", 4, 0);
+            usleep(100000); // 100ms
             send(socketPlayer1, "PING", 4, 0);
 
             recv(socketPlayer1, buffer1, 4, 0);
@@ -232,8 +234,8 @@ int connect4Server(int socketPlayer1, int socketPlayer2) { // Partie serveur du 
     }
 
     printf("PARTIE COMMENCE !\n");
-    send(socketPlayer1, "START", 5, 0);
-    send(socketPlayer2, "START", 5, 0);
+    send(socketPlayer1, "STAR", 5, 0);
+    send(socketPlayer2, "STAR", 5, 0);
 
     char **game = malloc(sizeof(char *) * SIZE); // Créer le tableau
     initializeGame(game); // Commence la partie

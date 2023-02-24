@@ -156,6 +156,7 @@ int connect4(int * socketClient, SDL_Renderer * renderer) {
     }
     if(!connect4QuitForcedByPlayer){
         sleep(10);
+
     }
     return 0;
 }
@@ -217,10 +218,10 @@ void *networkListener() { // Permet d'écouter les évenement recu du server
             connect_launched = SDL_FALSE;
             break;
         } else {
-            if(strcmp("START", startData) != 0)
+            if(strcmp("STAR", startData) != 0)
                 send(*connect4ClientSocket,"PONG",4,0);
         }
-    } while(strcmp("START", startData) != 0);
+    } while(strcmp("STAR", startData) != 0);
 
     while (connect_launched) {
         char data[9];

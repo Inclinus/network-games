@@ -1,4 +1,4 @@
-server_ip=projetc.neo-serv.fr
+server_ip=0.0.0.0
 server_port=4444
-username=noam
-password=noamlebg
+username=tibo
+password=mdpdeouf

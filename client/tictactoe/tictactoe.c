@@ -140,6 +140,7 @@ int tictactoe(int * socketClient, SDL_Renderer * rendererMenu) {
             }
             displayBoard(board);
             setDisplayFeedback(" ");
+            free(event);
         }
     }
     if(!quitForcedByPlayer){
@@ -206,10 +207,12 @@ void *networkListen() { // Ecoute des évenements NETWORK
             program_launched = SDL_FALSE;
             break;
         } else {
-            if(strcmp("START", startData) != 0)
+            if(strcmp("STAR", startData) != 0){
+                SDL_Log("TICTACTOE PACKET RECEIVED : NOT STAR");
                 send(*tictactoeClientSocket,"PONG",4,0);
+            }
         }
-    } while(strcmp("START", startData) != 0);
+    } while(strcmp("STAR", startData) != 0);
 
     while (program_launched) {
         char data[9];
@@ -291,7 +294,7 @@ void displayBoard(int **board) { // Affiche le plateau en SDL
 
     SDL_RenderClear(renderer); // Nettoie le rendu
     changeColor(renderer, 45,45,48); // Met la couleur blanche
-    createFilledRectangle(0, 0, 600, 700, renderer); // Met un fond blanc
+    createFilledRectangle(0, 0, 720, 480, renderer); // Met un fond blanc
 
     changeColor(renderer, 45,95,48); // Met la couleur du fond de jeu
     createFilledRectangle(180, 120, 360, 360, renderer); // Crée le fond de jeu

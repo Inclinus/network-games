@@ -53,7 +53,9 @@ void * startGame(void *args){
 
     if(strcmp(choix, "LEAVEGAME") == 0){
         send(myargs->socketPlayer1, "GAMEBREAK", 9, 0);
+        printf("Le joueur 1 GAMEBREAK\n");
         send(myargs->socketPlayer2, "GAMEBREAK", 9, 0);
+        printf("Le joueur 2 GAMEBREAK\n");
     } else if (strcmp(choix, "TICTACTOE") == 0) {
         send(myargs->socketPlayer2, "TICTACTOE", 9, 0);
         tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
@@ -62,10 +64,6 @@ void * startGame(void *args){
         connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
     }
     printf("La game id %d est terminé !\n",((GameArgs *)args)->GameId);
-//    lobby(&myargs->socketPlayer1);
-//    printf("LOBBY CREATE FOR PLAYERS\n");
-//    lobby(&myargs->socketPlayer2);
-//    printf("LOBBY CREATE FOR PLAYERS\n");
     return 0;
 }
 
@@ -146,26 +144,48 @@ int lobby(int * socketClient, char * login) {
                 pthread_t threadGame;
                 pthread_create(&threadGame, NULL, startGame, (void *) &args);
                 pthread_join(threadGame, NULL);
+                flag = 0;
             } else {
                 printf("JOIN DE LOBBY !\n");
                 args.socketPlayer2 = *socketClient;
+                flag = 0;
             }
         } else if (strcmp(choix, "STATS") == 0) {
             // TODO STATS
-            send(*socketClient, "STATS", 5, 0);
+            send(*socketClient, "STAT", 4, 0);
             MYSQL *con = connectBdd();
             Stats result = getStats(con, login);
             closeBdd(con);
             printf("nbWinTictactoe : %d", result.nbWinTictactoe);
             send(*socketClient, &result, sizeof(result), 0);
             printf("STATS ENVOYER !\n");
-        } else {
+
+            int syncFlag = 1;
+            while (syncFlag) {
+                char buffer1[5];
+                send(*socketClient, "PING", 4, 0);
+                printf("PING SEND !\n");
+                buffer1[4] = '\0';
+                recv(*socketClient, buffer1, 4, 0);
+                printf("[1] buffer1 : %s\n", buffer1);
+                if (strcmp(buffer1, "DEAD") == 0){
+                    printf("DEAD !\n");
+                    //recv(*socketClient, buffer1, 4, 0);
+                    send(*socketClient, "STAR", 4, 0);
+                    syncFlag = 0;
+                }
+            }
+        } else if (strcmp(choix, "PONG") == 0) {
+            printf("PONG NTM !\n");
+        }
+        else {
             printf("WTF THIS PACKET !\n");
             close(*socketClient);
             printf("SOCKET CLOSED !\n");
             flag = 0;
             //exit(EXIT_FAILURE);
         }
+        memset(choix, '\0', sizeof(choix));
     }
 }
 
@@ -174,7 +194,7 @@ int main() {
     int socketServer = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addrServer;
     //addrServer.sin_addr.s_addr = inet_addr("127.0.0.1");
-    addrServer.sin_addr.s_addr = inet_addr("92.222.131.57");
+    addrServer.sin_addr.s_addr = inet_addr("0.0.0.0");
     addrServer.sin_family = AF_INET;
     addrServer.sin_port = htons(4444);
 
@@ -204,32 +224,6 @@ int main() {
     if (con == NULL) {
         exit(1);
     }
-
-    // FIXME to do statistics
-
-//    if (createUser(con, "tibo", "mdpdeouf") == 0) {
-//        printf("L'utilisateur a bien été créer\n");
-//    } else {
-//        printf("L'utilisateur n'a pas pu être créer\n");
-//    }
-
-//    if(connectUser(con, "tibo", "mdpdeouf") == 1) {
-//        printf("L'utilisateur existe et le mot de passe sont correct\n");
-//
-//        addStats(con, getUsernameConnected(), 2);
-//    } else {
-//        printf("L'utilisateur n'existe pas ou le mot de passe est incorrect\n");
-//    }
-
-//    Stats test = getStats(con, "tibo");
-//    printf("STATS : %d\n", test.nbDrawConnect4);
-//
-//    addStats(con,"tibo",1);
-
-//    closeBdd(con);
-//
-//    int wait;
-//    scanf("%d", &wait);
 
     // FIN TEST BDD
 
@@ -273,6 +267,7 @@ int main() {
     for (int i = 0; i < nbJoueur; ++i) {
         close(socketClient[i]);
     }
+    free(socketClient);
     // Close Socket server
     close(socketServer);
 
