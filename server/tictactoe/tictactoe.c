@@ -46,13 +46,13 @@ int turn(int ** board, int player, int px, int py) // Permet de vérifier si un 
 }
 int winCondition(int ** board,int verifNumber){ // Vérifie si un joueur a gagner la partie
 
-    for (int i = 0; i < 2; i++) { // Boucle sur toutes les colonnes
+    for (int i = 0; i < 3; i++) { // Boucle sur toutes les colonnes
         if (board[i][0] == verifNumber && board[i][1] == verifNumber && board[i][2] == verifNumber) { // Vérifications des colonnes
             return 1; // Il y a un gagnant
         }
     }
 
-    for (int y = 0; y < 2; y++) { // Boucle sur toutes les lignes
+    for (int y = 0; y < 3; y++) { // Boucle sur toutes les lignes
         if (board[0][y] == verifNumber && board[1][y] == verifNumber && board[2][y] == verifNumber) { // Vérifications des lignes
             return 1; // Il y a un gagnant
         }
@@ -122,8 +122,8 @@ int tictactoe(int socketPlayer1, int socketPlayer2) { // fonction principale per
     }
 
     printf("PARTIE COMMENCE !\n");
-    send(socketPlayer1, "START", 5, 0);
-    send(socketPlayer2, "START", 5, 0);
+    send(socketPlayer1, "STAR", 5, 0);
+    send(socketPlayer2, "STAR", 5, 0);
 
     int ** board;
     int * row;
@@ -166,11 +166,6 @@ int tictactoe(int socketPlayer1, int socketPlayer2) { // fonction principale per
             flag = win(socketPlayer2, socketPlayer1, 2); // Retourne 1 en cas de victoire
         } else if(player>=10){ // au 10ème coup la partie s'arrête car le tableau ne peux accueillir que 9 coup
             flag = draw(socketPlayer2,socketPlayer1);
-        }
-    }
-    for (int i = 0; i < 3; ++i) {// Premier affichage du tableau de jeu
-        for (int y = 0; y < 3; ++y) {
-            free(&board[i][y]);
         }
     }
     free(board);
