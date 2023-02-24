@@ -181,10 +181,10 @@ void * networkMenuListen() {
         if (recv(*mainMenuClientSocket, data, sizeof(data)-1, 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
-        } else if (strstr("PING", data) != NULL) { // Si l'évenement est égal à PING
+        }  else if (strstr("PING", data) != NULL || strcmp("PINGPING",data) == 0 || strcmp("PING",data) == 0) { // Si l'évenement est égale à PING
             SDL_Log("[MAINMENU NETWORK LISTENER] PING RECEIVED");
             break;
-        }  else if (strcmp("STAT", data) == 0) {
+        } else if (strcmp("STAT", data) == 0) {
             SDL_Log("[MAINMENU NETWORK LISTENER] STATS RECEIVED");
             Stats * stats = malloc(sizeof(Stats));
             recv(*mainMenuClientSocket, stats, sizeof(Stats), 0);

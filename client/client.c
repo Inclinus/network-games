@@ -86,8 +86,9 @@ int login(int * socketClient, int action){
     char password[25];
     if (action == 1) {
         send(*socketClient, "LOGINCLI", 8, 0);
-
+        usleep(100000);
         send(*socketClient, getUsername(), 25, 0);
+        usleep(100000);
         send(*socketClient, getPassword(), 25, 0);
     } else if (action == 2) {
         send(*socketClient, "REGISTER", 8, 0);

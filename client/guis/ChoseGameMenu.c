@@ -131,14 +131,14 @@ void * choseGameSdlListen(){
 
 void * choseGameNetworkListen() {
     NG_Event *disconnectEvent = createEvent(NETWORK,"DISCONNECTED");
-
+    SDL_Log("LAUNCHING NETWORK THREAD CHOSEGAME");
     while(*choseGameRunning){
         char data[10];
         memset(data, '\0', sizeof(data));
         if (recv(*choseGameClientSocket, data, sizeof(data), 0) <= 0) { // Si le paquet est vide, se déconnecte
             sendEvent(disconnectEvent); // Envoie l'évènement de déconnexion
             break;
-        } else if (strstr("PING", data) != NULL) { // Si l'évenement est égale à PING
+        } else if (strstr("PING", data) != NULL || strcmp("PINGPING",data) == 0 || strcmp("PING",data) == 0) { // Si l'évenement est égale à PING
             SDL_Log("[CHOSEGAME NETWORK LISTENER] PING RECEIVED");
             break;
         } else {

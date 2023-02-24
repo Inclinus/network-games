@@ -207,8 +207,10 @@ void *networkListen() { // Ecoute des évenements NETWORK
             program_launched = SDL_FALSE;
             break;
         } else {
-            if(strcmp("STAR", startData) != 0)
+            if(strcmp("STAR", startData) != 0){
+                SDL_Log("TICTACTOE PACKET RECEIVED : NOT STAR");
                 send(*tictactoeClientSocket,"PONG",4,0);
+            }
         }
     } while(strcmp("STAR", startData) != 0);
 
