@@ -292,7 +292,7 @@ void displayBoard(int **board) { // Affiche le plateau en SDL
 
     SDL_RenderClear(renderer); // Nettoie le rendu
     changeColor(renderer, 45,45,48); // Met la couleur blanche
-    createFilledRectangle(0, 0, 600, 700, renderer); // Met un fond blanc
+    createFilledRectangle(0, 0, 720, 480, renderer); // Met un fond blanc
 
     changeColor(renderer, 45,95,48); // Met la couleur du fond de jeu
     createFilledRectangle(180, 120, 360, 360, renderer); // Crée le fond de jeu

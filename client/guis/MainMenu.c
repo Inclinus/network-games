@@ -58,7 +58,7 @@ void loadMainMenu(){
     inQueueText = "En attente d'un joueur...";
 
     gameFoundText = malloc(sizeof(char)*50);
-    gameFoundText = "Partie trouvée, en attente de votre adversaire...";
+    gameFoundText = "Partie trouvee, en attente de votre adversaire...";
 
     displayMenuMain();
 
@@ -111,7 +111,6 @@ void loadMainMenu(){
                     } else if(strcmp(event->instructions,"LOBBYJOUR")==0){
                         *isInQueue = SDL_FALSE;
                         *gameFound = SDL_TRUE;
-                        // TODO display text "game found, waiting for choice"
                     } else if(strcmp(event->instructions,"TICTACTOE")==0){
                         *mainMenuRunning = SDL_FALSE;
                         tictactoe(mainMenuClientSocket,rendererMenu);
@@ -121,8 +120,6 @@ void loadMainMenu(){
                     } else if(strcmp(event->instructions,"GAMEBREAK")==0){
                         *isInQueue = SDL_TRUE;
                         *gameFound = SDL_FALSE;
-                        // TODO remove display text game found
-                        //      add display text IN QUEUE
                     }
                     break;
                 default:
@@ -148,7 +145,12 @@ void * sdlClientListen(){
                     int x = event.button.x;
                     int y = event.button.y;
                     if(x>choseGameButton->beginX && x<choseGameButton->endX && y<choseGameButton->endY && y>choseGameButton->beginY){
-                        sendEvent(createEvent(SDL,"CHOSEGAME"));
+                        if(*isInQueue){
+                            *isInQueue = SDL_FALSE;
+                            sendEvent(createEvent(SDL,"LEAVE"));
+                        } else {
+                            sendEvent(createEvent(SDL,"CHOSEGAME"));
+                        }
                     } else if(x>statisticsButton->beginX && x<statisticsButton->endX && y<statisticsButton->endY && y>statisticsButton->beginY){
                         sendEvent(createEvent(SDL,"STATS"));
                     } else if(x>creditButton->beginX && x<creditButton->endX && y<creditButton->endY && y>creditButton->beginY){
@@ -179,10 +181,10 @@ void * networkMenuListen() {
         if (recv(*mainMenuClientSocket, data, sizeof(data)-1, 0) <= 0) {
             sendEvent(disconnectEvent);
             break;
-        } else if (strcmp("PING", data) == 0) {
+        } else if (strstr("PING", data) != NULL) { // Si l'évenement est égal à PING
             SDL_Log("[MAINMENU NETWORK LISTENER] PING RECEIVED");
             break;
-        } else if (strcmp("STAT", data) == 0) {
+        }  else if (strcmp("STAT", data) == 0) {
             SDL_Log("[MAINMENU NETWORK LISTENER] STATS RECEIVED");
             Stats * stats = malloc(sizeof(Stats));
             recv(*mainMenuClientSocket, stats, sizeof(Stats), 0);
@@ -276,9 +278,9 @@ void displayMenuMain(){
     createTextZoneCentered(rendererMenu, "Altino", WIDTH/2,50, 255, 255, 255,48);
 
     if(*isInQueue){
-        createTextZoneCentered(rendererMenu, inQueueText, 100,HEIGHT-30, 255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, inQueueText, 130,HEIGHT-30, 255, 255, 255,24);
     } else if(*gameFound){
-        createTextZoneCentered(rendererMenu, gameFoundText, 180,HEIGHT-30, 255, 255, 255,24);
+        createTextZoneCentered(rendererMenu, gameFoundText, 260,HEIGHT-30, 255, 255, 255,24);
     }
 
     if(*isInQueue){

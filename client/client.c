@@ -22,33 +22,99 @@
 SDL_bool clientRunning = SDL_TRUE;
 int * clientSocket;
 
+
+char * getUsername(){
+    FILE* file;
+
+    file = fopen("client/settings.txt", "r");
+    if (file == NULL) {
+        printf("Failed to open config file.\n ERRNO = %d\n",errno);
+        exit(1);
+    }
+
+    char line[1024];
+    char field_name[124], field_value[124];
+
+    char * username = NULL;
+
+    while (fgets(line, 1024, file) != NULL) {
+        sscanf(line, "%[^=]=%[^\n]", field_name, field_value);
+        if (strcmp(field_name, "username") == 0) {
+            username = malloc(sizeof(char)* strlen(field_value)+1);
+            printf("Username: %s\n", field_value);
+            strcpy(username, field_value);
+        }
+    }
+
+    fclose(file);
+
+    return username;
+}
+
+char * getPassword(){
+    FILE* file;
+
+    file = fopen("client/settings.txt", "r");
+    if (file == NULL) {
+        printf("Failed to open config file.\n ERRNO = %d\n",errno);
+        exit(1);
+    }
+
+    char line[1024];
+    char field_name[124], field_value[124];
+
+    char * password = NULL;
+
+    while (fgets(line, 1024, file) != NULL) {
+        sscanf(line, "%[^=]=%[^\n]", field_name, field_value);
+        if (strcmp(field_name, "password") == 0) {
+            password = malloc(sizeof(char)* strlen(field_value)+1);
+            printf("Password: %s\n", field_value);
+            strcpy(password, field_value);
+        }
+    }
+
+    fclose(file);
+
+    return password;
+}
+
 // action = 1 -> login
 // action = 2 -> register
 int login(int * socketClient, int action){
+    char username[25];
+    char password[25];
     if (action == 1) {
         send(*socketClient, "LOGINCLI", 8, 0);
+
+        send(*socketClient, getUsername(), 25, 0);
+        send(*socketClient, getPassword(), 25, 0);
     } else if (action == 2) {
         send(*socketClient, "REGISTER", 8, 0);
+
+        printf("Quel est votre pseudo : \n");
+        scanf("%s", username);
+        send(*socketClient, username, sizeof(username), 0);
+
+        printf("Quel est votre mot de passe : \n");
+        scanf("%s", password);
+        send(*socketClient, password, sizeof(password), 0);
     }
-    char buffer[25];
-    printf("Quel est votre pseudo : \n");
-    scanf("%s", buffer);
-    send(*socketClient, buffer, sizeof(buffer), 0);
-    printf("Quel est votre mot de passe : \n");
-    scanf("%s", buffer);
-    send(*socketClient, buffer, sizeof(buffer), 0);
+
     char result[3];
     recv(*socketClient, result, sizeof(result), 0);
     result[2] = '\0';
     printf("RECU : %s\n", result);
     if(strcmp(result, "OK") == 0){
         printf("OK !\n");
+
         return 1;
     }else{
         printf("NOK !\n");
         return 0;
     }
 }
+
 
 char * getServerIp(){
     FILE* file;
