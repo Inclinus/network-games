@@ -19,7 +19,6 @@ SDL_bool tryPlay(char **game, int column, char color);
 
 void initializeGame(char **game);
 void displayGameBoard(char **game);
-void unloadGame(char **game);
 
 void *sdlListener();
 void *networkListener();
@@ -152,16 +151,12 @@ int connect4(int * socketClient, SDL_Renderer * renderer) {
             }
             displayGameBoard(game);
             setDisplayedFeedback(" ");
-            free(event->instructions);
-            free(event);
         }
 
     }
-    free(yourTurn);
-    unloadGame(game);
-    free(game);
     if(!connect4QuitForcedByPlayer){
         sleep(10);
+
     }
     return 0;
 }
@@ -223,10 +218,10 @@ void *networkListener() { // Permet d'écouter les évenement recu du server
             connect_launched = SDL_FALSE;
             break;
         } else {
-            if(strcmp("START", startData) != 0)
+            if(strcmp("STAR", startData) != 0)
                 send(*connect4ClientSocket,"PONG",4,0);
         }
-    } while(strcmp("START", startData) != 0);
+    } while(strcmp("STAR", startData) != 0);
 
     while (connect_launched) {
         char data[9];
@@ -404,14 +399,6 @@ void displayGameBoard(char **game) { // Création du tableau en SDL en créer ch
     updateRenderer(rendererConnect4);
 }
 
-void unloadGame(char **game) { // Lancement d'une partie
-    for (int i = 0; i < SIZE; i++) { // Allocation mémoire du tableau de jeu
-        for (int j = 0; j < SIZE; j++) { // Remplis le tableau avec des +
-            free(&game[i][j]);
-        }
-        free(game[i]);
-    }
-}
 
 void initializeGame(char **game) { // Lancement d'une partie
     for (int i = 0; i < SIZE; i++) { // Allocation mémoire du tableau de jeu

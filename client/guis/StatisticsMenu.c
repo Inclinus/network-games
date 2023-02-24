@@ -1,9 +1,26 @@
+#include <sys/socket.h>
 #include "StatisticsMenu.h"
 #include "MainMenu.h"
 
 SDL_bool * statisticsMenuRunning = NULL;
 
-void statisticsMenu(SDL_Renderer * rendererMenu, Stats * stats){
+void statisticsMenu(const int * statisticsSocketClient,SDL_Renderer * rendererMenu, Stats * stats){
+    SDL_Log("ENTERING STATISTICS MENU");
+    char startData[6];
+    memset(startData, '\0', sizeof(startData));
+    do{
+        if (recv(*statisticsSocketClient, startData, 5, 0) <= 0) {
+            SDL_ExitWithError("DISCONNECTED");
+            break;
+        } else {
+            if(strcmp("STAR", startData) != 0){
+                SDL_Log("PACKET RECEIVED BUT NOT \"STAR\" : SENDING PONG");
+                send(*statisticsSocketClient,"PONG",4,0);
+            }
+
+        }
+        SDL_Log("ITERATION");
+    } while(strcmp("STAR", startData) != 0);
 
     statisticsMenuRunning = malloc(sizeof(SDL_bool));
     if(statisticsMenuRunning==NULL){
@@ -46,8 +63,8 @@ void statisticsMenu(SDL_Renderer * rendererMenu, Stats * stats){
         SDL_ExitWithError("ERROR ALLOCATING TICTACTOEDRAWTEXT");
     }
 
-    sprintf(connect4WinText,"%s %d", "Connect 4 Win :", stats->nbWinConnect4);
-    sprintf(connect4LoseText,"%s %d", "Connect 4 Lose :", stats->nbLooseConnect4);
+    sprintf(connect4WinText,"Connect 4 Win : %d", stats->nbWinConnect4);
+    sprintf(connect4LoseText,"Connect 4 Lose : %d", stats->nbLooseConnect4);
     sprintf(connect4DrawText,"%s %d", "Connect 4 Draw :", stats->nbDrawConnect4);
     sprintf(ticTacToeWinText,"%s %d", "TicTacToe Win :", stats->nbWinTictactoe);
     sprintf(ticTacToeLoseText,"%s %d", "TicTacToe Lose :", stats->nbLooseTictactoe);
@@ -64,12 +81,6 @@ void statisticsMenu(SDL_Renderer * rendererMenu, Stats * stats){
 
     updateRenderer(rendererMenu);
 
-    free(connect4WinText);
-    free(connect4LoseText);
-    free(connect4DrawText);
-    free(ticTacToeWinText);
-    free(ticTacToeLoseText);
-    free(ticTacToeDrawText);
 
     while(*statisticsMenuRunning){
         SDL_Event event;
@@ -77,7 +88,7 @@ void statisticsMenu(SDL_Renderer * rendererMenu, Stats * stats){
         while(SDL_PollEvent(&event)){
             switch(event.type){
                 case SDL_QUIT:
-                    *statisticsMenuRunning = SDL_TRUE;
+                    *statisticsMenuRunning = SDL_FALSE;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     ;
@@ -87,14 +98,10 @@ void statisticsMenu(SDL_Renderer * rendererMenu, Stats * stats){
                         *statisticsMenuRunning = SDL_FALSE;
                         loadMainMenu();
                     }
-                    else{
-                        continue;
-                    }
+                    break;
                 default:
                     break;
             }
         }
     }
-    free(stats);
-    free(statisticsMenuRunning);
 } 

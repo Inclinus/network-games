@@ -140,20 +140,12 @@ int tictactoe(int * socketClient, SDL_Renderer * rendererMenu) {
             }
             displayBoard(board);
             setDisplayFeedback(" ");
-            free(event->instructions);
             free(event);
         }
     }
     if(!quitForcedByPlayer){
         sleep(5);
     }
-    for (int i = 0; i < 3; ++i) { // Création de la 2ème dimension du tableau
-        for (int j = 0; j < 3; ++j) {
-            free(&board[i][j]);
-        }
-    }
-    free(board);
-
     return 0;
 }
 
@@ -215,10 +207,10 @@ void *networkListen() { // Ecoute des évenements NETWORK
             program_launched = SDL_FALSE;
             break;
         } else {
-            if(strcmp("START", startData) != 0)
+            if(strcmp("STAR", startData) != 0)
                 send(*tictactoeClientSocket,"PONG",4,0);
         }
-    } while(strcmp("START", startData) != 0);
+    } while(strcmp("STAR", startData) != 0);
 
     while (program_launched) {
         char data[9];

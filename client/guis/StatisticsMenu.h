@@ -10,4 +10,4 @@ typedef struct Stats {
 } Stats;
 
 
-void statisticsMenu(SDL_Renderer * rendererMenu, Stats * stats);
+void statisticsMenu(const int * statisticsSocketClient,SDL_Renderer * rendererMenu, Stats * stats);

@@ -41,10 +41,6 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){ // Fonction 
                         send(*choseGameClientSocket, "LEAVEGAME", 9, 0); // Envoie une déconnexion au serveur
                         *choseGameRunning = SDL_FALSE; // Fin de la boucle
                         loadMainMenu(); // Renvoie le menu principale
-                    } else if(strcmp(event->instructions, "TICTACTOE") == 0){ // Si l'instruction est TICTACTOE
-                        send(*choseGameClientSocket, "TICTACTOE", 9, 0); // Envoie le choix du jeu au serveur
-                        *choseGameRunning = SDL_FALSE; // Le menu n'est plus actif
-                        loadMainMenu();
                     } else if(strcmp(event->instructions, "TICTACTOE") == 0){
                         send(*choseGameClientSocket, "TICTACTOE", 9, 0);
                         *choseGameRunning = SDL_FALSE;
@@ -66,11 +62,9 @@ int choseGameMenu(SDL_Renderer * rendererMenu, int * socketClient){ // Fonction 
                 default:
                     break;
             }
-            free(event->instructions);
             free(event);
         }
     }
-    free(choseGameRunning);
 }
 
 
@@ -146,6 +140,7 @@ void * choseGameNetworkListen() {
             break;
         } else if (strcmp("PING", data) == 0) { // Si l'évenement est égale à PING
             SDL_Log("[CHOSEGAME NETWORK LISTENER] PING RECEIVED");
+            break;
         } else {
             NG_Event *receivedDataEvent = malloc(sizeof(NG_Event));// Allocation mémoire receivedDataEvent
             if(receivedDataEvent==NULL){

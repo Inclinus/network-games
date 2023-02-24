@@ -25,18 +25,14 @@ Button * ipInput;
 
 Button * portInput;
 
+Button * goBack;
+
 void settingsMenu(SDL_Renderer * rendererMenu){
     settingsMenuRunning = malloc(sizeof(SDL_bool));
     if(settingsMenuRunning==NULL){
         SDL_ExitWithError("ERROR ALLOCATING SETTINGSMENURUNNING SDLBOOL");
     }
     *settingsMenuRunning = SDL_TRUE;
-
-    Button goBack;
-    goBack.beginX = 20;
-    goBack.beginY = 430;
-    goBack.endX = 150;
-    goBack.endY = 470;
 
     initInputButtons();
 
@@ -114,7 +110,7 @@ void settingsMenu(SDL_Renderer * rendererMenu){
                     } else if(x>ipInput->beginX && ipInput->endX>x && y>ipInput->beginY && ipInput->endY>y){
                         selectedInput = SERVER_IP;
                         selectedInputText = serverIpText;
-                    } else if(x>goBack.beginX && goBack.endX>x && y>goBack.beginY && goBack.endY>y){
+                    } else if(x>goBack->beginX && goBack->endX>x && y>goBack->beginY && goBack->endY>y){
                         *settingsMenuRunning = SDL_FALSE;
                         loadMainMenu();
                         break;
@@ -174,14 +170,6 @@ void settingsMenu(SDL_Renderer * rendererMenu){
             }
         }
     }
-    free(settingsMenuRunning);
-    free(serverPortText);
-    free(serverIpText);
-    free(config.server_ip);
-    free(config.password);
-    free(config.username);
-    free(portInput);
-    free(ipInput);
 }
 
 void saveAll(char * ip, char * port, char * username, char * password){
@@ -203,9 +191,9 @@ void saveAll(char * ip, char * port, char * username, char * password){
 
 
 void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, Input selectedInput){
-
-    changeColor(renderer,255,255,255);
-    createFilledRectangle(0,0,720,480,renderer);
+    SDL_RenderClear(renderer);
+//    changeColor(renderer,255,255,255);
+//    createFilledRectangle(0,0,720,480,renderer);
     SDL_Log("STRLEN DE IPTEXT = %d",strlen(ipText));
     if(selectedInput == SERVER_IP) {
         if(strlen(ipText)>=1 && strlen(ipText)<22) {
@@ -235,6 +223,8 @@ void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, Inpu
         }
     }
 
+    createButton(renderer,*goBack, "retour");
+
     updateRenderer(renderer);
 }
 
@@ -262,4 +252,13 @@ void initInputButtons(){
     portInput->beginY = 250;
     portInput->endX = 550;
     portInput->endY = 300;
+
+    goBack = malloc(sizeof(Button));
+    if(goBack==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING GO BACK BUTTON");
+    }
+    goBack->beginX = 20;
+    goBack->beginY = 430;
+    goBack->endX = 150;
+    goBack->endY = 470;
 }
