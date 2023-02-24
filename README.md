@@ -15,7 +15,7 @@ Nous avons ajouté l'utilisation de la librairie SDL2 pour nous permettre de ren
 
 ### <img src="https://camo.githubusercontent.com/b462a7f57c3b8941b927b4100f1d5c6ebfc95d21a3715e588321f7282d9398e2/68747470733a2f2f63646e2e7261776769742e636f6d2f63726f636f64696c656a732f666f6e742d617765736f6d652d6173736574732f6d61737465722f6d656469612f7261696e626f772f74656c65766973696f6e2e737667" alt= "" width="18" height="18"> Client
 
-Pas d'inquiétude un script start.sh est mis a disposition et va vérifier et/ou installé les dépendances pour vous !
+Pas d'inquiétude un script start.sh est mis à disposition et va vérifier et/ou installer les dépendances pour vous !
 
 #### Librairie utilisée
 
@@ -31,10 +31,10 @@ Pas d'inquiétude un script start.sh est mis a disposition et va vérifier et/ou
 
 ```bash
 
-# Clone le depot git
+# Cloner le depot git
 $ git clone https://github.com/Inclinus/network-games/
 
-# Rendre le script éxécutable
+# Rendre le script exécutable
 $ chmod +x start.sh
 
 # Lancer le script de démarrage
@@ -44,7 +44,7 @@ $ ./start.sh
 
 ### <img src="https://camo.githubusercontent.com/90064d1c3c59aff29f5cb6d6b092659abae88a05f43f46a480691010a8c65841/68747470733a2f2f63646e2e7261776769742e636f6d2f63726f636f64696c656a732f666f6e742d617765736f6d652d6173736574732f6d61737465722f6d656469612f7261696e626f772f7461736b732e737667" alt= "" width="18" height="18"> Serveur
 
-Pas d'inquiétude un docker à été réalisé pour vous et tout est inclus dedans !
+Pas d'inquiétude un docker a été réalisé pour vous et tout est inclus dedans !
 
 #### Librairie utilisée
 
