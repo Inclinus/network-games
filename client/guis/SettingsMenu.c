@@ -4,7 +4,9 @@
 
 typedef enum {
     SERVER_IP = 0,
-    SERVER_PORT = 1
+    SERVER_PORT = 1,
+    USERNAME = 2,
+    PASSWORD = 3
 } Input;
 
 typedef struct {
@@ -14,7 +16,7 @@ typedef struct {
     char * password;
 } Configuration;
 
-void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, Input selectedInput);
+void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, char * username, char * password, Input selectedInput);
 void str_to_uint16(const char *str, uint16_t *res);
 void initInputButtons();
 void saveAll(char * ip, char * port, char * username, char * password);
@@ -24,6 +26,8 @@ SDL_bool * settingsMenuRunning = NULL;
 Button * ipInput;
 
 Button * portInput;
+Button * usernameInputSettings;
+Button * passwordInputSettings;
 
 Button * goBack;
 
@@ -93,9 +97,29 @@ void settingsMenu(SDL_Renderer * rendererMenu){
         serverPortText[0] = '\0';
     }
 
+    char * usernameText = NULL;
+    if(config.username!=NULL){
+        printf("%s",config.username);
+        usernameText = malloc(sizeof(char)* strlen(config.username)+1);
+        strcpy(usernameText,config.username);
+    } else {
+        usernameText =  malloc(sizeof(char));
+        usernameText[0] = '\0';
+    }
+
+    char * passwordText = NULL;
+    if(config.password!=NULL){
+        printf("%s",config.password);
+        passwordText = malloc(sizeof(char)* strlen(config.password)+1);
+        strcpy(passwordText,config.password);
+    } else {
+        passwordText =  malloc(sizeof(char));
+        passwordText[0] = '\0';
+    }
+
     char * selectedInputText = serverIpText;
     Input selectedInput = SERVER_IP;
-    displayConfig(rendererMenu, serverIpText,serverPortText,selectedInput);
+    displayConfig(rendererMenu, serverIpText,serverPortText,usernameText,passwordText,selectedInput);
 
     while(*settingsMenuRunning){
         SDL_Event event;
@@ -110,12 +134,18 @@ void settingsMenu(SDL_Renderer * rendererMenu){
                     } else if(x>ipInput->beginX && ipInput->endX>x && y>ipInput->beginY && ipInput->endY>y){
                         selectedInput = SERVER_IP;
                         selectedInputText = serverIpText;
+                    }  else if(x>usernameInputSettings->beginX && usernameInputSettings->endX>x && y>usernameInputSettings->beginY && usernameInputSettings->endY>y){
+                        selectedInput = USERNAME;
+                        selectedInputText = usernameText;
+                    }  else if(x>passwordInputSettings->beginX && passwordInputSettings->endX>x && y>passwordInputSettings->beginY && passwordInputSettings->endY>y){
+                        selectedInput = PASSWORD;
+                        selectedInputText = passwordText;
                     } else if(x>goBack->beginX && goBack->endX>x && y>goBack->beginY && goBack->endY>y){
                         *settingsMenuRunning = SDL_FALSE;
                         loadMainMenu();
                         break;
                     }
-                    displayConfig(rendererMenu, serverIpText,serverPortText,selectedInput);
+                    displayConfig(rendererMenu, serverIpText,serverPortText,usernameText,passwordText,selectedInput);
                     break;
                 case SDL_QUIT:
                     *settingsMenuRunning = SDL_FALSE;
@@ -125,7 +155,7 @@ void settingsMenu(SDL_Renderer * rendererMenu){
                     int length = strlen(selectedInputText);
                     if(event.key.keysym.sym == SDLK_KP_ENTER || event.key.keysym.sym == SDLK_RETURN){
                         *settingsMenuRunning = SDL_FALSE;
-                        saveAll(serverIpText,serverPortText,config.username,config.password);
+                        saveAll(serverIpText,serverPortText,usernameText,passwordText);
                         break;
                     } else if(event.key.keysym.sym == SDLK_BACKSPACE){
                         if(length>0){
@@ -135,7 +165,7 @@ void settingsMenu(SDL_Renderer * rendererMenu){
                             }
                             selectedInputText[length - 1] = '\0';
                         }
-                    } else if(selectedInput==SERVER_IP && length==21 || selectedInput==SERVER_PORT && length==5){
+                    } else if(selectedInput==SERVER_IP && length==21 || selectedInput==SERVER_PORT && length==5 || selectedInput==USERNAME && length==21 || selectedInput==PASSWORD && length==21){
                         break;
                     } else if(event.key.keysym.sym == 59){
                         selectedInputText = realloc(selectedInputText, length * sizeof(char) + 2);
@@ -154,7 +184,7 @@ void settingsMenu(SDL_Renderer * rendererMenu){
 
                         selectedInputText[length] = keyChar;
                         selectedInputText[length + 1] = '\0';
-                    } else if(event.key.keysym.sym >= 1073741913 && event.key.keysym.sym <= 1073741923){
+                    } else if(event.key.keysym.sym >= 1073741913 && event.key.keysym.sym <= 1073741923 || event.key.keysym.sym == 1073741910){
                         selectedInputText = realloc(selectedInputText, length * sizeof(char) + 2);
                         if(selectedInputText==NULL){
                             SDL_ExitWithError("ERROR REALLOCATING SELECTEDINPUTTEXT");
@@ -165,7 +195,7 @@ void settingsMenu(SDL_Renderer * rendererMenu){
                         selectedInputText[length] = keyChar;
                         selectedInputText[length + 1] = '\0';
                     }
-                    displayConfig(rendererMenu, serverIpText,serverPortText,selectedInput);
+                    displayConfig(rendererMenu, serverIpText,serverPortText,usernameText,passwordText,selectedInput);
                     break;
             }
         }
@@ -190,7 +220,7 @@ void saveAll(char * ip, char * port, char * username, char * password){
 }
 
 
-void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, Input selectedInput){
+void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, char * userText, char * passwordText, Input selectedInput){
     SDL_RenderClear(renderer);
 //    changeColor(renderer,255,255,255);
 //    createFilledRectangle(0,0,720,480,renderer);
@@ -222,6 +252,34 @@ void displayConfig(SDL_Renderer * renderer, char * ipText, char * portText, Inpu
             createButtonColor(renderer, *portInput, "INSERT PORT HERE", 0, 0, 0);
         }
     }
+    SDL_Log("STRLEN DE USERNAMETEXT = %d",strlen(userText));
+    if(selectedInput == USERNAME) {
+        if(strlen(userText)>=1 && strlen(userText)<21) {
+            createButtonColor(renderer, *usernameInputSettings, userText, 0, 255, 0);
+        } else {
+            createButtonColor(renderer, *usernameInputSettings, "INSERT USERNAME HERE", 0, 255, 0);
+        }
+    } else {
+        if(strlen(userText)>=1 && strlen(userText)<21) {
+            createButtonColor(renderer, *usernameInputSettings, userText, 0, 0, 0);
+        } else {
+            createButtonColor(renderer, *usernameInputSettings, "INSERT USERNAME HERE", 0, 0, 0);
+        }
+    }
+    SDL_Log("STRLEN DE PASSWORDTEXT = %d",strlen(passwordText));
+    if(selectedInput == PASSWORD) {
+        if(strlen(passwordText)>=1 && strlen(passwordText)<21) {
+            createButtonColor(renderer, *passwordInputSettings, passwordText, 0, 255, 0);
+        } else {
+            createButtonColor(renderer, *passwordInputSettings, "INSERT PASSWORD HERE", 0, 255, 0);
+        }
+    } else {
+        if(strlen(passwordText)>=1 && strlen(passwordText)<21) {
+            createButtonColor(renderer, *passwordInputSettings, passwordText, 0, 0, 0);
+        } else {
+            createButtonColor(renderer, *passwordInputSettings, "INSERT PASSWORD HERE", 0, 0, 0);
+        }
+    }
 
     createButton(renderer,*goBack, "retour");
 
@@ -239,19 +297,37 @@ void initInputButtons(){
     if(ipInput==NULL){
         SDL_ExitWithError("ERROR ALLOCATING IP INPUT BUTTON");
     }
-    ipInput->beginX = 250;
-    ipInput->beginY = 150;
-    ipInput->endX = 550;
-    ipInput->endY = 200;
+    ipInput->beginX = 220;
+    ipInput->beginY = 80;
+    ipInput->endX = 520;
+    ipInput->endY = 130;
 
     portInput = malloc(sizeof(Button));
     if(portInput==NULL){
         SDL_ExitWithError("ERROR ALLOCATING PORT INPUT BUTTON");
     }
-    portInput->beginX = 250;
-    portInput->beginY = 250;
-    portInput->endX = 550;
-    portInput->endY = 300;
+    portInput->beginX = 220;
+    portInput->beginY = 150;
+    portInput->endX = 520;
+    portInput->endY = 200;
+
+    usernameInputSettings = malloc(sizeof(Button));
+    if(usernameInputSettings==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING USERNAME INPUT BUTTON");
+    }
+    usernameInputSettings->beginX = 220;
+    usernameInputSettings->beginY = 220;
+    usernameInputSettings->endX = 520;
+    usernameInputSettings->endY = 270;
+
+    passwordInputSettings = malloc(sizeof(Button));
+    if(passwordInputSettings==NULL){
+        SDL_ExitWithError("ERROR ALLOCATING PASSWORD INPUT BUTTON");
+    }
+    passwordInputSettings->beginX = 220;
+    passwordInputSettings->beginY = 290;
+    passwordInputSettings->endX = 520;
+    passwordInputSettings->endY = 340;
 
     goBack = malloc(sizeof(Button));
     if(goBack==NULL){
