@@ -53,7 +53,9 @@ void * startGame(void *args){
 
     if(strcmp(choix, "LEAVEGAME") == 0){
         send(myargs->socketPlayer1, "GAMEBREAK", 9, 0);
+        printf("Le joueur 1 GAMEBREAK\n");
         send(myargs->socketPlayer2, "GAMEBREAK", 9, 0);
+        printf("Le joueur 2 GAMEBREAK\n");
     } else if (strcmp(choix, "TICTACTOE") == 0) {
         send(myargs->socketPlayer2, "TICTACTOE", 9, 0);
         tictactoe(myargs->socketPlayer1, myargs->socketPlayer2);
@@ -62,10 +64,6 @@ void * startGame(void *args){
         connect4Server(myargs->socketPlayer1, myargs->socketPlayer2);
     }
     printf("La game id %d est terminé !\n",((GameArgs *)args)->GameId);
-//    lobby(&myargs->socketPlayer1);
-//    printf("LOBBY CREATE FOR PLAYERS\n");
-//    lobby(&myargs->socketPlayer2);
-//    printf("LOBBY CREATE FOR PLAYERS\n");
     return 0;
 }
 
@@ -146,26 +144,48 @@ int lobby(int * socketClient, char * login) {
                 pthread_t threadGame;
                 pthread_create(&threadGame, NULL, startGame, (void *) &args);
                 pthread_join(threadGame, NULL);
+                flag = 0;
             } else {
                 printf("JOIN DE LOBBY !\n");
                 args.socketPlayer2 = *socketClient;
+                flag = 0;
             }
         } else if (strcmp(choix, "STATS") == 0) {
             // TODO STATS
-            send(*socketClient, "STATS", 5, 0);
+            send(*socketClient, "STAT", 4, 0);
             MYSQL *con = connectBdd();
             Stats result = getStats(con, login);
             closeBdd(con);
             printf("nbWinTictactoe : %d", result.nbWinTictactoe);
             send(*socketClient, &result, sizeof(result), 0);
             printf("STATS ENVOYER !\n");
-        } else {
+
+            int syncFlag = 1;
+            while (syncFlag) {
+                char buffer1[5];
+                send(*socketClient, "PING", 4, 0);
+                printf("PING SEND !\n");
+                buffer1[4] = '\0';
+                recv(*socketClient, buffer1, 4, 0);
+                printf("[1] buffer1 : %s\n", buffer1);
+                if (strcmp(buffer1, "DEAD") == 0){
+                    printf("DEAD !\n");
+                    //recv(*socketClient, buffer1, 4, 0);
+                    send(*socketClient, "STAR", 4, 0);
+                    syncFlag = 0;
+                }
+            }
+        } else if (strcmp(choix, "PONG") == 0) {
+            printf("PONG NTM !\n");
+        }
+        else {
             printf("WTF THIS PACKET !\n");
             close(*socketClient);
             printf("SOCKET CLOSED !\n");
             flag = 0;
             //exit(EXIT_FAILURE);
         }
+        memset(choix, '\0', sizeof(choix));
     }
 }
 
