@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <unistd.h>
 
 int SIZE = 7;
 
@@ -191,6 +192,7 @@ int connect4Server(int socketPlayer1, int socketPlayer2) { // Partie serveur du 
             char buffer1[5];
             char buffer2[5];
             send(socketPlayer1, "PING", 4, 0);
+            usleep(100000); // 100ms
             send(socketPlayer1, "PING", 4, 0);
 
             recv(socketPlayer1, buffer1, 4, 0);
